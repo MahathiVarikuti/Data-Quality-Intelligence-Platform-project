@@ -18,6 +18,9 @@ class Dataset(models.Model):
     num_rows = models.IntegerField(null=True, blank=True)
     num_columns = models.IntegerField(null=True, blank=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='uploaded')
+    initial_missing_count = models.IntegerField(null=True, blank=True)
+    initial_duplicate_count = models.IntegerField(null=True, blank=True)
+    initial_overall_score = models.FloatField(null=True, blank=True)
 
     def __str__(self):
         return self.name
@@ -34,6 +37,7 @@ class ValidationReport(models.Model):
     total_missing = models.IntegerField(default=0)
     duplicate_count = models.IntegerField(default=0)
     invalid_email_count = models.IntegerField(default=0)
+    invalid_type_count = models.IntegerField(default=0)
 
     issue_summary = models.JSONField(default=list, blank=True)
     recommendations = models.JSONField(default=list, blank=True)

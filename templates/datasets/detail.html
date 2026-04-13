@@ -2,285 +2,650 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Dataset Detail</title>
+    <title>{{ dataset.name }} — Data Quality Platform</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400&display=swap" rel="stylesheet">
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; }
+        :root {
+            --bg: #f0f2f5; --surface: #ffffff; --border: #e2e6ea;
+            --text: #1a1d23; --muted: #6b7280; --accent: #2f6de1;
+            --accent-soft: #e8f0fd; --radius: 12px;
+        }
+        body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); margin: 0; }
+
+        .topbar { background:#fff; border-bottom:1px solid var(--border); padding:0 32px; height:56px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:200; }
+        .topbar-brand { font-size:.95rem; font-weight:700; letter-spacing:-.01em; display:flex; align-items:center; gap:10px; color:var(--text); text-decoration:none; }
+        .topbar-dot { width:28px; height:28px; background:var(--accent); border-radius:7px; display:inline-flex; align-items:center; justify-content:center; }
+        .topbar-dot svg { width:14px; height:14px; fill:white; }
+        .btn-sm-outline { font-size:.82rem; font-weight:500; padding:5px 12px; border:1px solid var(--border); border-radius:8px; background:white; color:var(--muted); text-decoration:none; transition:all .15s; }
+        .btn-sm-outline:hover { background:var(--bg); color:var(--text); }
+
+        .main { max-width:1160px; margin:0 auto; padding:28px 24px; }
+        .breadcrumb-row { display:flex; align-items:center; gap:6px; font-size:.82rem; color:var(--muted); margin-bottom:8px; }
+        .breadcrumb-row a { color:var(--muted); text-decoration:none; } .breadcrumb-row a:hover { color:var(--accent); }
+        .page-title { font-size:1.35rem; font-weight:700; color:var(--text); margin:0; letter-spacing:-.02em; }
+
+        .card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:22px; margin-bottom:18px; }
+        .card-title { font-size:.88rem; font-weight:600; color:var(--text); margin:0 0 16px; letter-spacing:-.01em; }
+
+        /* META */
+        .meta-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:16px; }
+        @media(max-width:700px){.meta-grid{grid-template-columns:repeat(2,1fr);}}
+        .meta-item label { font-size:.72rem; font-weight:500; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); display:block; margin-bottom:4px; }
+        .meta-item span { font-size:.9rem; font-weight:500; }
+
+        /* BADGES */
+        .badge { display:inline-block; padding:3px 10px; border-radius:999px; font-size:.75rem; font-weight:600; }
+        .badge-cleaned{background:#d1fae5;color:#065f46;} .badge-validated{background:#dbeafe;color:#1e40af;}
+        .badge-profiled{background:#fef3c7;color:#92400e;} .badge-uploaded{background:#f3f4f6;color:#374151;}
+
+        /* SCORES */
+        .scores-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; }
+        @media(max-width:700px){.scores-grid{grid-template-columns:repeat(2,1fr);}}
+        .score-card { background:var(--bg); border:1px solid var(--border); border-radius:10px; padding:16px; text-align:center; }
+        .score-card.overall { background:var(--accent-soft); border-color:#c7d8fa; }
+        .score-label { font-size:.72rem; font-weight:600; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); margin-bottom:6px; }
+        .score-value { font-size:1.6rem; font-weight:700; color:var(--text); line-height:1; }
+        .score-card.overall .score-value { color:var(--accent); }
+
+        /* PROGRESS */
+        .progress-track { background:#e9ecef; border-radius:999px; height:8px; overflow:hidden; margin-top:8px; }
+        .progress-fill { height:100%; background:linear-gradient(90deg,var(--accent),#60a5fa); border-radius:999px; transition:width .4s; }
+        .progress-meta { display:flex; justify-content:space-between; font-size:.78rem; color:var(--muted); margin-top:5px; }
+
+        /* ACTIONS */
+        .actions-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); gap:10px; }
+        .btn-action { padding:10px 14px; border-radius:10px; font-family:'DM Sans',sans-serif; font-size:.85rem; font-weight:600; cursor:pointer; border:1px solid; text-decoration:none; display:flex; align-items:center; gap:7px; transition:all .15s; width:100%; justify-content:center; }
+        .btn-warn { background:#fff7ed; color:#c2410c; border-color:#fde8d5; } .btn-warn:hover{background:#ffedd5;}
+        .btn-info { background:#eff6ff; color:#1d4ed8; border-color:#bfdbfe; } .btn-info:hover{background:#dbeafe;}
+        .btn-success { background:#f0fdf4; color:#15803d; border-color:#bbf7d0; } .btn-success:hover{background:#dcfce7;}
+        .btn-purple { background:#faf5ff; color:#7c3aed; border-color:#ddd6fe; } .btn-purple:hover{background:#ede9fe;}
+        .btn-rose { background:#fff1f2; color:#be123c; border-color:#fecdd3; } .btn-rose:hover{background:#ffe4e6;}
+        .btn-slate { background:#f8fafc; color:#475569; border-color:#e2e8f0; } .btn-slate:hover{background:#f1f5f9;}
+        .btn-dark { background:var(--text); color:white; border-color:var(--text); } .btn-dark:hover{opacity:.85;color:white;}
+        .btn-teal { background:#f0fdfa; color:#0f766e; border-color:#99f6e4; } .btn-teal:hover{background:#ccfbf1;}
+
+        /* TWO COL */
+        .two-col { display:grid; grid-template-columns:1fr 1fr; gap:18px; }
+        @media(max-width:700px){.two-col{grid-template-columns:1fr;}}
+
+        /* SUMMARY STATS */
+        .summary-stats { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
+        @media(max-width:600px){.summary-stats{grid-template-columns:1fr;}}
+        .summary-stat { background:var(--bg); border:1px solid var(--border); border-radius:10px; padding:14px 16px; }
+        .summary-stat-label { font-size:.72rem; font-weight:500; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; margin-bottom:4px; }
+        .summary-stat-value { font-size:1.4rem; font-weight:700; }
+
+        /* LISTS */
+        .issue-list, .rec-list { padding:0; margin:0; list-style:none; }
+        .issue-list li, .rec-list li { padding:8px 0; font-size:.86rem; border-bottom:1px solid #f1f3f5; display:flex; align-items:flex-start; gap:8px; }
+        .issue-list li:last-child, .rec-list li:last-child { border-bottom:none; }
+        .issue-list li::before { content:'!'; font-size:.65rem; font-weight:700; background:#fef3c7; color:#92400e; border-radius:999px; width:16px; height:16px; display:inline-flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:2px; }
+        .rec-list li::before { content:'→'; font-size:.75rem; color:var(--accent); flex-shrink:0; }
+
+        /* TABLE */
+        table { width:100%; border-collapse:collapse; }
+        thead th { font-size:.72rem; font-weight:600; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); padding:0 10px 10px; text-align:left; border-bottom:1px solid var(--border); }
+        tbody tr { border-bottom:1px solid #f1f3f5; transition:background .1s; }
+        tbody tr:last-child { border-bottom:none; }
+        tbody tr:hover { background:#fafbfc; }
+        tbody td { padding:10px; font-size:.83rem; }
+        .mono { font-family:'DM Mono',monospace; }
+        .col-name { font-weight:600; }
+
+        /* COLUMN PROFILING TABLE */
+        .profile-table th { white-space:nowrap; }
+        .tag { display:inline-block; padding:2px 8px; border-radius:6px; font-size:.72rem; font-weight:600; }
+        .tag-num { background:#eff6ff; color:#1d4ed8; }
+        .tag-text { background:#f3f4f6; color:#374151; }
+        .tag-warn { background:#fef3c7; color:#92400e; }
+        .bar-wrap { background:#f1f5f9; border-radius:999px; height:5px; width:80px; overflow:hidden; display:inline-block; vertical-align:middle; margin-left:6px; }
+        .bar-fill { height:100%; background:var(--accent); border-radius:999px; }
+        .bar-fill.danger { background:#ef4444; }
+
+        /* MODAL overrides */
+        .modal-content { border:1px solid var(--border); border-radius:16px; }
+        .modal-header { border-bottom:1px solid var(--border); padding:18px 22px; }
+        .modal-title { font-size:1rem; font-weight:700; }
+        .modal-body { padding:20px 22px; }
+        .modal-footer { border-top:1px solid var(--border); padding:14px 22px; }
+
+        .col-row { background:var(--bg); border:1px solid var(--border); border-radius:10px; padding:14px; margin-bottom:10px; }
+        .col-row-name { font-size:.88rem; font-weight:600; margin-bottom:8px; }
+        .col-row-meta { font-size:.78rem; color:var(--muted); margin-bottom:8px; }
+        select.form-select, input.form-control { font-size:.85rem; border-radius:8px; border-color:var(--border); }
+        select.form-select:focus, input.form-control:focus { border-color:var(--accent); box-shadow:0 0 0 3px rgba(47,109,225,.1); }
+        .custom-val { margin-top:8px; display:none; }
+        label.check-label { font-size:.85rem; display:flex; align-items:center; gap:8px; padding:6px 0; cursor:pointer; border-bottom:1px solid #f1f3f5; }
+        label.check-label:last-child { border-bottom:none; }
+
+        /* OUTLIER TABLE */
+        .outlier-row td { vertical-align:middle; }
+        .outlier-badge { background:#fff7ed; color:#c2410c; border:1px solid #fde8d5; padding:2px 8px; border-radius:6px; font-size:.75rem; font-weight:600; }
+
+        /* TOAST */
+        .toast-wrap { position:fixed; bottom:24px; right:24px; z-index:9999; display:flex; flex-direction:column; gap:8px; }
+        .toast-msg { background:#1a1d23; color:white; padding:12px 18px; border-radius:10px; font-size:.85rem; font-weight:500; animation:slideup .2s ease; max-width:320px; }
+        .toast-msg.success { border-left:3px solid #10b981; }
+        .toast-msg.error { border-left:3px solid #ef4444; }
+        @keyframes slideup { from{transform:translateY(10px);opacity:0} to{transform:translateY(0);opacity:1} }
+
+        /* TABS */
+        .tab-nav { display:flex; gap:4px; margin-bottom:16px; border-bottom:2px solid var(--border); }
+        .tab-btn { padding:8px 14px; font-size:.84rem; font-weight:500; color:var(--muted); background:none; border:none; cursor:pointer; border-bottom:2px solid transparent; margin-bottom:-2px; transition:all .15s; }
+        .tab-btn.active { color:var(--accent); border-bottom-color:var(--accent); font-weight:600; }
+        .tab-pane { display:none; } .tab-pane.active { display:block; }
+    </style>
 </head>
-<body class="bg-light">
-    <div class="container py-4">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h1 class="mb-0">Dataset Detail</h1>
-            <div>
-                <a href="/datasets/upload/" class="btn btn-primary">Upload Another Dataset</a>
-                <a href="/" class="btn btn-secondary">Back to Dashboard</a>
+<body>
+
+<nav class="topbar">
+    <a href="/" class="topbar-brand">
+        <div class="topbar-dot"><svg viewBox="0 0 24 24"><path d="M3 3h18v2H3V3zm0 4h18v2H3V7zm0 4h12v2H3v-2zm0 4h8v2H3v-2zm0 4h5v2H3v-2z"/></svg></div>
+        Data Quality Platform
+    </a>
+    <div style="display:flex;gap:10px;">
+        <a href="/datasets/upload/" class="btn-sm-outline">Upload Dataset</a>
+        <a href="/" class="btn-sm-outline">Dashboard</a>
+    </div>
+</nav>
+
+<div class="main">
+    <div style="margin-bottom:20px;">
+        <div class="breadcrumb-row"><a href="/">Dashboard</a><span>›</span><span>{{ dataset.name }}</span></div>
+        <h1 class="page-title">{{ dataset.name }}</h1>
+    </div>
+
+    <!-- META -->
+    <div class="card">
+        <div class="card-title">Dataset Overview</div>
+        <div class="meta-grid">
+            <div class="meta-item"><label>Status</label>
+                <span id="dataset-status">
+                {% if dataset.status == 'cleaned' %}<span class="badge badge-cleaned">Cleaned</span>
+                {% elif dataset.status == 'validated' %}<span class="badge badge-validated">Validated</span>
+                {% elif dataset.status == 'profiled' %}<span class="badge badge-profiled">Profiled</span>
+                {% else %}<span class="badge badge-uploaded">Uploaded</span>{% endif %}
+                </span>
             </div>
-        </div>
-
-        <div class="card shadow-sm mb-4">
-            <div class="card-body">
-                <p><strong>Name:</strong> {{ dataset.name }}</p>
-                <p><strong>Status:</strong> <span id="dataset-status">{{ dataset.status }}</span></p>
-                <p><strong>Rows:</strong> <span id="dataset-rows">{{ dataset.num_rows }}</span></p>
-                <p><strong>Columns:</strong> <span id="dataset-columns">{{ dataset.num_columns }}</span></p>
-                <p><strong>File Size:</strong> {{ dataset.file_size }} bytes</p>
-                <p><strong>Uploaded At:</strong> {{ dataset.uploaded_at }}</p>
-            </div>
-        </div>
-
-        <div class="card shadow-sm mb-4">
-            <div class="card-body">
-                <h2 class="h4">Cleaning Actions</h2>
-
-                <button id="remove-duplicates-btn" class="btn btn-warning mb-2">
-                    Remove Duplicate Rows
-                </button>
-
-                <button id="fill-missing-btn" class="btn btn-info mb-2">
-                    Fill Missing Values
-                </button>
-
-                <a href="{% url 'export_dataset' dataset.id %}" class="btn btn-success mb-2">
-                    Download Current CSV
-                </a>
-
-                <br>
-
-                <button id="refresh-report-btn" class="btn btn-dark mt-2">
-                    Refresh Report via API
-                </button>
-            </div>
-        </div>
-
-        <div class="row mb-4">
-            <div class="col-md-3">
-                <div class="card text-center shadow-sm">
-                    <div class="card-body">
-                        <h5>Completeness</h5>
-                        <p class="fs-4" id="completeness-score">{{ completeness_score }}</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card text-center shadow-sm">
-                    <div class="card-body">
-                        <h5>Uniqueness</h5>
-                        <p class="fs-4" id="uniqueness-score">{{ uniqueness_score }}</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card text-center shadow-sm">
-                    <div class="card-body">
-                        <h5>Validity</h5>
-                        <p class="fs-4" id="validity-score">{{ validity_score }}</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card text-center shadow-sm border-success">
-                    <div class="card-body">
-                        <h5>Overall Score</h5>
-                        <p class="fs-4 fw-bold" id="overall-score">{{ overall_score }}/100</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="card shadow-sm mb-4">
-            <div class="card-body">
-                <h2 class="h4">Overall Quality Score</h2>
-                <div class="progress" style="height: 25px;">
-                    <div
-                        class="progress-bar bg-success"
-                        id="overall-score-bar"
-                        role="progressbar"
-                        style="width: {{ overall_score }}%;"
-                        aria-valuenow="{{ overall_score }}"
-                        aria-valuemin="0"
-                        aria-valuemax="100">
-                        {{ overall_score }}%
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="card shadow-sm mb-4">
-            <div class="card-body">
-                <h2 class="h4">Issue Summary</h2>
-                <ul class="mb-0" id="issue-summary-list">
-                    {% for issue in issue_summary %}
-                        <li>{{ issue }}</li>
-                    {% endfor %}
-                </ul>
-            </div>
-        </div>
-
-        <div class="card shadow-sm mb-4">
-            <div class="card-body">
-                <h2 class="h4">Recommendations</h2>
-                <ul class="mb-0" id="recommendations-list">
-                    {% for rec in recommendations %}
-                        <li>{{ rec }}</li>
-                    {% endfor %}
-                </ul>
-            </div>
-        </div>
-
-        <div class="card shadow-sm mb-4">
-            <div class="card-body">
-                <h2 class="h4">Quality Summary</h2>
-                <p><strong>Total Missing Values:</strong> <span id="total-missing">{{ total_missing }}</span></p>
-                <p><strong>Duplicate Rows:</strong> <span id="duplicate-count">{{ duplicate_count }}</span></p>
-                <p><strong>Invalid Emails:</strong> <span id="invalid-email-count">{{ invalid_email_count }}</span></p>
-
-                {% if invalid_email_samples %}
-                    <h3 class="h5 mt-3">Invalid Email Samples</h3>
-                    <ul>
-                        {% for email in invalid_email_samples %}
-                            <li>{{ email }}</li>
-                        {% endfor %}
-                    </ul>
-                {% endif %}
-            </div>
-        </div>
-
-        <div class="card shadow-sm mb-4">
-            <div class="card-body">
-                <h2 class="h4">Missing Values by Column</h2>
-                <div class="table-responsive">
-                    <table class="table table-bordered">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Column</th>
-                                <th>Missing Count</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for col, count in missing_summary.items %}
-                                <tr>
-                                    <td>{{ col }}</td>
-                                    <td>{{ count }}</td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <div class="card shadow-sm">
-            <div class="card-body">
-                <h2 class="h4">Preview (First 5 Rows)</h2>
-                <div class="table-responsive">
-                    <table class="table table-bordered table-striped">
-                        <thead class="table-dark">
-                            <tr>
-                                {% for col in columns %}
-                                    <th>{{ col }}</th>
-                                {% endfor %}
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for row in preview_data %}
-                                <tr>
-                                    {% for col in columns %}
-                                        <td>{{ row|get_item:col }}</td>
-                                    {% endfor %}
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+            <div class="meta-item"><label>Rows</label><span id="dataset-rows">{{ dataset.num_rows }}</span></div>
+            <div class="meta-item"><label>Columns</label><span id="dataset-columns">{{ dataset.num_columns }}</span></div>
+            <div class="meta-item"><label>File Size</label><span>{{ dataset.file_size }} bytes</span></div>
+            <div class="meta-item"><label>Uploaded At</label><span>{{ dataset.uploaded_at }}</span></div>
         </div>
     </div>
 
-    <script>
-        $(document).ready(function () {
-            function refreshReport() {
-                $.ajax({
-                    url: "/api/report/{{ dataset.id }}/",
-                    type: "GET",
-                    success: function (data) {
-                        $("#dataset-status").text(data.status);
-                        $("#dataset-rows").text(data.num_rows);
-                        $("#dataset-columns").text(data.num_columns);
+    <!-- SCORES -->
+    <div class="card">
+        <div class="card-title">Quality Scores</div>
+        <div class="scores-grid">
+            <div class="score-card"><div class="score-label">Completeness</div><div class="score-value" id="completeness-score">{{ completeness_score }}</div></div>
+            <div class="score-card"><div class="score-label">Uniqueness</div><div class="score-value" id="uniqueness-score">{{ uniqueness_score }}</div></div>
+            <div class="score-card"><div class="score-label">Validity</div><div class="score-value" id="validity-score">{{ validity_score }}</div></div>
+            <div class="score-card overall"><div class="score-label">Overall</div><div class="score-value" id="overall-score">{{ overall_score }}</div></div>
+        </div>
+        <div class="progress-meta" style="margin-top:16px;">
+            <span>Overall Quality Score</span><span id="overall-score-pct">{{ overall_score }}%</span>
+        </div>
+        <div class="progress-track"><div class="progress-fill" id="overall-score-bar" style="width:{{ overall_score }}%;"></div></div>
+    </div>
 
-                        $("#completeness-score").text(data.completeness_score);
-                        $("#uniqueness-score").text(data.uniqueness_score);
-                        $("#validity-score").text(data.validity_score);
-                        $("#overall-score").text(data.overall_score + "/100");
+    <!-- ACTIONS -->
+    <div class="card">
+        <div class="card-title">Cleaning Actions</div>
+        <div class="actions-grid">
+            <button class="btn-action btn-warn" id="btn-remove-dupes">Remove Duplicates</button>
+            <button class="btn-action btn-info" id="btn-fill-missing" data-bs-toggle="modal" data-bs-target="#fillMissingModal">Fill Missing Values</button>
+            <button class="btn-action btn-purple" id="btn-outliers" data-bs-toggle="modal" data-bs-target="#outliersModal">Outlier Detection</button>
+            <button class="btn-action btn-slate" id="btn-remove-cols" data-bs-toggle="modal" data-bs-target="#removeColsModal">Remove Columns</button>
+            <button class="btn-action btn-rose" id="btn-fix-text" data-bs-toggle="modal" data-bs-target="#fixTextModal">Fix Text / Casing</button>
+            <a href="/datasets/{{ dataset.id }}/quality-report/" class="btn-action btn-teal">Download Report</a>
+            <a href="{% url 'export_dataset' dataset.id %}" class="btn-action btn-success">Download CSV</a>
+            <button class="btn-action btn-dark" id="btn-refresh">↻ Refresh Report</button>
+        </div>
+    </div>
 
-                        $("#overall-score-bar")
-                            .css("width", data.overall_score + "%")
-                            .attr("aria-valuenow", data.overall_score)
-                            .text(data.overall_score + "%");
+    <!-- ISSUES + RECS -->
+    <div class="two-col">
+        <div class="card">
+            <div class="card-title">Issue Summary</div>
+            <ul class="issue-list" id="issue-summary-list">
+                {% for issue in issue_summary %}<li>{{ issue }}</li>{% endfor %}
+            </ul>
+        </div>
+        <div class="card">
+            <div class="card-title">Recommendations</div>
+            <ul class="rec-list" id="recommendations-list">
+                {% for rec in recommendations %}<li>{{ rec }}</li>{% endfor %}
+            </ul>
+        </div>
+    </div>
 
-                        $("#total-missing").text(data.total_missing);
-                        $("#duplicate-count").text(data.duplicate_count);
-                        $("#invalid-email-count").text(data.invalid_email_count);
+    <!-- QUALITY SUMMARY -->
+    <div class="card">
+        <div class="card-title">Quality Summary</div>
+        <div class="summary-stats">
+            <div class="summary-stat"><div class="summary-stat-label">Missing Values</div><div class="summary-stat-value" id="total-missing">{{ total_missing }}</div></div>
+            <div class="summary-stat"><div class="summary-stat-label">Duplicate Rows</div><div class="summary-stat-value" id="duplicate-count">{{ duplicate_count }}</div></div>
+            <div class="summary-stat"><div class="summary-stat-label">Invalid Emails</div><div class="summary-stat-value" id="invalid-email-count">{{ invalid_email_count }}</div></div>
+        </div>
+        {% if invalid_email_samples %}
+        <div style="margin-top:14px;">
+            <div style="font-size:.75rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;">Invalid Email Samples</div>
+            <div style="display:flex;flex-wrap:wrap;gap:6px;">
+                {% for email in invalid_email_samples %}<span style="background:#fef2f2;color:#991b1b;font-size:.78rem;padding:3px 10px;border-radius:6px;font-family:'DM Mono',monospace;">{{ email }}</span>{% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
 
-                        let issueHtml = "";
-                        data.issue_summary.forEach(function(item) {
-                            issueHtml += "<li>" + item + "</li>";
-                        });
-                        $("#issue-summary-list").html(issueHtml);
+    <!-- COLUMN PROFILING -->
+    <div class="card">
+        <div class="card-title">Column Profiling</div>
+        <div class="tab-nav">
+            <button class="tab-btn active" data-tab="all">All Columns</button>
+            <button class="tab-btn" data-tab="numeric">Numeric</button>
+            <button class="tab-btn" data-tab="text">Text</button>
+            <button class="tab-btn" data-tab="issues">With Issues</button>
+        </div>
+        <div style="overflow-x:auto;">
+            <table class="profile-table">
+                <thead>
+                    <tr>
+                        <th>Column</th><th>Type</th><th>Missing</th><th>Unique</th>
+                        <th>Mean</th><th>Median</th><th>Min</th><th>Max</th>
+                        <th>Top Values</th><th>Flags</th>
+                    </tr>
+                </thead>
+                <tbody id="profile-tbody">
+                {% for s in col_stats %}
+                <tr data-type="{% if s.is_numeric %}numeric{% else %}text{% endif %}"
+                    data-issues="{% if s.missing > 0 or s.date_issues > 0 or s.type_mismatch %}1{% else %}0{% endif %}">
+                    <td class="col-name">{{ s.name }}</td>
+                    <td>
+                        {% if s.is_numeric %}<span class="tag tag-num">Numeric</span>
+                        {% else %}<span class="tag tag-text">Text</span>{% endif %}
+                    </td>
+                    <td>
+                        {{ s.missing }}
+                        {% if s.missing > 0 %}
+                        <span class="bar-wrap"><span class="bar-fill {% if s.missing_pct > 30 %}danger{% endif %}" style="width:{{ s.missing_pct }}%;"></span></span>
+                        <span style="font-size:.72rem;color:var(--muted);">{{ s.missing_pct }}%</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ s.unique }}</td>
+                    <td class="mono">{% if s.mean is not None %}{{ s.mean }}{% else %}—{% endif %}</td>
+                    <td class="mono">{% if s.median is not None %}{{ s.median }}{% else %}—{% endif %}</td>
+                    <td class="mono">{% if s.min is not None %}{{ s.min }}{% else %}—{% endif %}</td>
+                    <td class="mono">{% if s.max is not None %}{{ s.max }}{% else %}—{% endif %}</td>
+                    <td style="font-size:.78rem;color:var(--muted);">
+                        {% for tv in s.top_values %}{{ tv.val }} ({{ tv.count }}){% if not forloop.last %}, {% endif %}{% endfor %}
+                    </td>
+                    <td>
+                        {% if s.type_mismatch %}<span class="tag tag-warn" title="Stored as text but looks numeric">Type?</span> {% endif %}
+                        {% if s.date_issues > 0 %}<span class="tag tag-warn" title="{{ s.date_issues }} bad dates"> {{ s.date_issues }}</span>{% endif %}
+                        {% if s.missing == 0 and not s.type_mismatch and s.date_issues == 0 %}<span style="color:#10b981;font-size:.75rem;">✓ OK</span>{% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
 
-                        let recHtml = "";
-                        data.recommendations.forEach(function(item) {
-                            recHtml += "<li>" + item + "</li>";
-                        });
-                        $("#recommendations-list").html(recHtml);
-                    },
-                    error: function () {
-                        alert("Failed to fetch report data.");
-                    }
-                });
-            }
+    <!-- PREVIEW + MISSING BY COL -->
+    <div class="two-col">
+        <div class="card">
+            <div class="card-title">Missing Values by Column</div>
+            <div style="overflow-x:auto;max-height:300px;overflow-y:auto;">
+                <table>
+                    <thead><tr><th>Column</th><th>Missing</th></tr></thead>
+                    <tbody>
+                        {% for col, count in missing_summary.items %}
+                        <tr><td style="font-weight:500;">{{ col }}</td><td class="mono">{{ count }}</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-title">Preview (First 5 Rows)</div>
+            <div style="overflow-x:auto;max-height:300px;overflow-y:auto;">
+                <table>
+                    <thead><tr>{% for col in columns %}<th>{{ col }}</th>{% endfor %}</tr></thead>
+                    <tbody>
+                        {% for row in preview_data %}<tr>{% for col in columns %}<td class="mono">{{ row|get_item:col }}</td>{% endfor %}</tr>{% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
 
-            $("#refresh-report-btn").click(function () {
-                refreshReport();
-                alert("Report refreshed successfully via API.");
-            });
+<!-- ===================== MODALS ===================== -->
 
-            $("#remove-duplicates-btn").click(function () {
-                $.ajax({
-                    url: "/datasets/{{ dataset.id }}/remove-duplicates/",
-                    type: "POST",
-                    headers: {
-                        "X-Requested-With": "XMLHttpRequest",
-                        "X-CSRFToken": "{{ csrf_token }}"
-                    },
-                    success: function (data) {
-                        refreshReport();
-                        alert(data.message + " Removed: " + data.removed_count);
-                        location.reload();
-                    },
-                    error: function () {
-                        alert("Failed to remove duplicates.");
-                    }
-                });
-            });
+<!-- FILL MISSING MODAL -->
+<div class="modal fade" id="fillMissingModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Fill Missing Values</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="fill-missing-body">
+                <div class="text-center py-4 text-muted">Loading columns…</div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button class="btn btn-primary" id="apply-fill-btn">Apply</button>
+            </div>
+        </div>
+    </div>
+</div>
 
-            $("#fill-missing-btn").click(function () {
-                $.ajax({
-                    url: "/datasets/{{ dataset.id }}/fill-missing-values/",
-                    type: "POST",
-                    headers: {
-                        "X-Requested-With": "XMLHttpRequest",
-                        "X-CSRFToken": "{{ csrf_token }}"
-                    },
-                    success: function (data) {
-                        refreshReport();
-                        alert(data.message + " Filled: " + data.filled_count);
-                        location.reload();
-                    },
-                    error: function () {
-                        alert("Failed to fill missing values.");
-                    }
-                });
-            });
+<!-- OUTLIERS MODAL -->
+<div class="modal fade" id="outliersModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Outlier Detection (IQR Method)</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="outliers-body">
+                <div class="text-center py-4 text-muted">Scanning for outliers…</div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button class="btn btn-danger" id="apply-outliers-btn">Remove Selected Outlier Rows</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- REMOVE COLUMNS MODAL -->
+<div class="modal fade" id="removeColsModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Remove Columns</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p style="font-size:.85rem;color:var(--muted);">Select columns to permanently remove from the dataset.</p>
+                <div id="remove-cols-list">
+                    {% for col in columns %}
+                    <label class="check-label">
+                        <input type="checkbox" class="remove-col-check" value="{{ col }}"> {{ col }}
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button class="btn btn-danger" id="apply-remove-cols-btn">Remove Selected</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- FIX TEXT MODAL -->
+<div class="modal fade" id="fixTextModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Fix Text / Casing</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="fix-text-body">
+                <div class="text-center py-4 text-muted">Loading text columns…</div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button class="btn btn-primary" id="apply-fix-text-btn">Apply</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="toast-wrap" id="toast-wrap"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+const DATASET_ID = {{ dataset.id }};
+const CSRF = "{{ csrf_token }}";
+
+function toast(msg, type='success') {
+    const t = document.createElement('div');
+    t.className = `toast-msg ${type}`;
+    t.textContent = msg;
+    document.getElementById('toast-wrap').appendChild(t);
+    setTimeout(() => t.remove(), 3500);
+}
+
+function refreshReport() {
+    $.get(`/api/report/${DATASET_ID}/`, function(data) {
+        $('#dataset-status').text(data.status);
+        $('#dataset-rows').text(data.num_rows);
+        $('#dataset-columns').text(data.num_columns);
+        $('#completeness-score').text(data.completeness_score);
+        $('#uniqueness-score').text(data.uniqueness_score);
+        $('#validity-score').text(data.validity_score);
+        $('#overall-score').text(data.overall_score);
+        $('#overall-score-pct').text(data.overall_score + '%');
+        $('#overall-score-bar').css('width', data.overall_score + '%');
+        $('#total-missing').text(data.total_missing);
+        $('#duplicate-count').text(data.duplicate_count);
+        $('#invalid-email-count').text(data.invalid_email_count);
+        $('#issue-summary-list').html(data.issue_summary.map(i => `<li>${i}</li>`).join(''));
+        $('#recommendations-list').html(data.recommendations.map(r => `<li>${r}</li>`).join(''));
+    });
+}
+
+// Tab switching (column profiling)
+document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        const tab = this.dataset.tab;
+        document.querySelectorAll('#profile-tbody tr').forEach(row => {
+            if (tab === 'all') row.style.display = '';
+            else if (tab === 'numeric') row.style.display = row.dataset.type === 'numeric' ? '' : 'none';
+            else if (tab === 'text') row.style.display = row.dataset.type === 'text' ? '' : 'none';
+            else if (tab === 'issues') row.style.display = row.dataset.issues === '1' ? '' : 'none';
         });
-    </script>
+    });
+});
+
+// Remove duplicates
+$('#btn-remove-dupes').click(function() {
+    $.ajax({
+        url: `/datasets/${DATASET_ID}/remove-duplicates/`,
+        type: 'POST',
+        headers: {'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': CSRF},
+        success(data) { refreshReport(); toast(`${data.message} Removed: ${data.removed_count}`); setTimeout(() => location.reload(), 1500); },
+        error() { toast('Failed to remove duplicates.', 'error'); }
+    });
+});
+
+// Refresh
+$('#btn-refresh').click(function() { refreshReport(); toast('Report refreshed.'); });
+
+// ---- FILL MISSING MODAL ----
+$('#fillMissingModal').on('show.bs.modal', function() {
+    $.get(`/datasets/${DATASET_ID}/fill-missing-values/`, function(data) {
+        if (!data.columns || data.columns.length === 0) {
+            $('#fill-missing-body').html('<div class="text-center py-3 text-success">✓ No missing values found!</div>');
+            return;
+        }
+        let html = '<p style="font-size:.84rem;color:var(--muted);margin-bottom:14px;">Set a fill strategy per column with missing values.</p>';
+        data.columns.forEach(col => {
+            let opts = `<option value="mode">Mode (most frequent)</option>`;
+            if (col.is_numeric) {
+                opts = `<option value="mean">Mean (avg = ${col.mean ?? '?'})</option>
+                        <option value="median">Median (${col.median ?? '?'})</option>` + opts;
+            }
+            opts += `<option value="custom">Custom value</option><option value="drop">Drop rows</option>`;
+            html += `<div class="col-row" data-col="${col.name}">
+                <div class="col-row-name">${col.name}</div>
+                <div class="col-row-meta">${col.missing} missing value${col.missing > 1 ? 's' : ''} · ${col.is_numeric ? 'Numeric' : 'Text'}</div>
+                <select class="form-select fill-strategy-select">
+                    ${opts}
+                </select>
+                <div class="custom-val">
+                    <input type="text" class="form-control custom-fill-val mt-2" placeholder="Enter custom value…">
+                </div>
+            </div>`;
+        });
+        $('#fill-missing-body').html(html);
+        // Show/hide custom input
+        $(document).on('change', '.fill-strategy-select', function() {
+            $(this).closest('.col-row').find('.custom-val').toggle($(this).val() === 'custom');
+        });
+    });
+});
+
+$('#apply-fill-btn').click(function() {
+    const strategies = {};
+    $('.col-row').each(function() {
+        const col = $(this).data('col');
+        const method = $(this).find('.fill-strategy-select').val();
+        const custom_value = $(this).find('.custom-fill-val').val();
+        strategies[col] = {method, custom_value};
+    });
+    $.ajax({
+        url: `/datasets/${DATASET_ID}/fill-missing-values/`,
+        type: 'POST',
+        contentType: 'application/json',
+        headers: {'X-CSRFToken': CSRF},
+        data: JSON.stringify({strategies}),
+        success(data) {
+            bootstrap.Modal.getInstance(document.getElementById('fillMissingModal')).hide();
+            refreshReport();
+            toast(`${data.message} Filled: ${data.filled_count}, Dropped rows: ${data.dropped_rows}`);
+            setTimeout(() => location.reload(), 1800);
+        },
+        error() { toast('Failed to fill missing values.', 'error'); }
+    });
+});
+
+// ---- OUTLIERS MODAL ----
+$('#outliersModal').on('show.bs.modal', function() {
+    $.get(`/datasets/${DATASET_ID}/detect-outliers/`, function(data) {
+        if (!data.outliers || data.outliers.length === 0) {
+            $('#outliers-body').html('<div class="text-center py-3 text-success">✓ No outliers detected in numeric columns.</div>');
+            return;
+        }
+        let html = '<p style="font-size:.84rem;color:var(--muted);margin-bottom:12px;">Outliers detected using IQR method. Select columns to remove their outlier rows.</p>';
+        html += '<table style="width:100%;border-collapse:collapse;font-size:.84rem;"><thead><tr style="border-bottom:1px solid var(--border);"><th style="padding:6px 8px;"><input type="checkbox" id="outlier-check-all"> All</th><th style="padding:6px 8px;">Column</th><th style="padding:6px 8px;">Outlier Rows</th><th style="padding:6px 8px;">Valid Range</th><th style="padding:6px 8px;">Data Range</th></tr></thead><tbody>';
+        data.outliers.forEach(o => {
+            html += `<tr class="outlier-row">
+                <td style="padding:8px;"><input type="checkbox" class="outlier-col-check" value="${o.column}" checked></td>
+                <td style="padding:8px;font-weight:600;">${o.column}</td>
+                <td style="padding:8px;"><span class="outlier-badge">${o.count} rows</span></td>
+                <td style="padding:8px;font-family:'DM Mono',monospace;font-size:.78rem;">[${o.lower_bound}, ${o.upper_bound}]</td>
+                <td style="padding:8px;font-family:'DM Mono',monospace;font-size:.78rem;">[${o.min_val}, ${o.max_val}]</td>
+            </tr>`;
+        });
+        html += '</tbody></table>';
+        $('#outliers-body').html(html);
+        $('#outlier-check-all').on('change', function() {
+            $('.outlier-col-check').prop('checked', this.checked);
+        });
+    });
+});
+
+$('#apply-outliers-btn').click(function() {
+    const cols = $('.outlier-col-check:checked').map((_, el) => el.value).get();
+    if (!cols.length) { toast('Select at least one column.', 'error'); return; }
+    $.ajax({
+        url: `/datasets/${DATASET_ID}/remove-outliers/`,
+        type: 'POST', contentType: 'application/json',
+        headers: {'X-CSRFToken': CSRF},
+        data: JSON.stringify({columns: cols}),
+        success(data) {
+            bootstrap.Modal.getInstance(document.getElementById('outliersModal')).hide();
+            refreshReport();
+            toast(`${data.message}`);
+            setTimeout(() => location.reload(), 1800);
+        },
+        error() { toast('Failed to remove outliers.', 'error'); }
+    });
+});
+
+// ---- REMOVE COLUMNS ----
+$('#apply-remove-cols-btn').click(function() {
+    const cols = $('.remove-col-check:checked').map((_, el) => el.value).get();
+    if (!cols.length) { toast('Select at least one column.', 'error'); return; }
+    if (!confirm(`Remove ${cols.length} column(s)? This cannot be undone.`)) return;
+    $.ajax({
+        url: `/datasets/${DATASET_ID}/remove-columns/`,
+        type: 'POST', contentType: 'application/json',
+        headers: {'X-CSRFToken': CSRF},
+        data: JSON.stringify({columns: cols}),
+        success(data) {
+            bootstrap.Modal.getInstance(document.getElementById('removeColsModal')).hide();
+            refreshReport();
+            toast(`${data.message}`);
+            setTimeout(() => location.reload(), 1800);
+        },
+        error() { toast('Failed to remove columns.', 'error'); }
+    });
+});
+
+// ---- FIX TEXT MODAL ----
+$('#fixTextModal').on('show.bs.modal', function() {
+    $.get(`/datasets/${DATASET_ID}/fix-text/`, function(data) {
+        if (!data.text_columns || data.text_columns.length === 0) {
+            $('#fix-text-body').html('<div class="text-center py-3 text-muted">No text columns found.</div>');
+            return;
+        }
+        let html = '<p style="font-size:.84rem;color:var(--muted);margin-bottom:14px;">Choose transformations per text column.</p>';
+        data.text_columns.forEach(col => {
+            html += `<div class="col-row" data-col="${col}">
+                <div class="col-row-name">${col}</div>
+                <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:6px;">
+                    <label style="font-size:.83rem;display:flex;align-items:center;gap:6px;cursor:pointer;">
+                        <input type="checkbox" class="text-op" data-op="trim"> Trim whitespace
+                    </label>
+                    <label style="font-size:.83rem;display:flex;align-items:center;gap:6px;cursor:pointer;">
+                        <input type="checkbox" class="text-op" data-op="lower"> lowercase
+                    </label>
+                    <label style="font-size:.83rem;display:flex;align-items:center;gap:6px;cursor:pointer;">
+                        <input type="checkbox" class="text-op" data-op="upper"> UPPERCASE
+                    </label>
+                    <label style="font-size:.83rem;display:flex;align-items:center;gap:6px;cursor:pointer;">
+                        <input type="checkbox" class="text-op" data-op="title"> Title Case
+                    </label>
+                </div>
+            </div>`;
+        });
+        $('#fix-text-body').html(html);
+    });
+});
+
+$('#apply-fix-text-btn').click(function() {
+    const operations = {};
+    $('.col-row').each(function() {
+        const col = $(this).data('col');
+        const ops = $(this).find('.text-op:checked').map((_, el) => el.dataset.op).get();
+        if (ops.length) operations[col] = ops;
+    });
+    if (!Object.keys(operations).length) { toast('Select at least one operation.', 'error'); return; }
+    $.ajax({
+        url: `/datasets/${DATASET_ID}/fix-text/`,
+        type: 'POST', contentType: 'application/json',
+        headers: {'X-CSRFToken': CSRF},
+        data: JSON.stringify({operations}),
+        success(data) {
+            bootstrap.Modal.getInstance(document.getElementById('fixTextModal')).hide();
+            toast(data.message);
+            setTimeout(() => location.reload(), 1800);
+        },
+        error() { toast('Failed to apply text fixes.', 'error'); }
+    });
+});
+</script>
 </body>
 </html>

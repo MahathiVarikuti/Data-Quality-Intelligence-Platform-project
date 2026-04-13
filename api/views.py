@@ -1,12 +1,14 @@
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 from datasets.models import Dataset, ValidationReport
 
 
 @api_view(['GET'])
+@permission_classes([AllowAny])
 def report_api(request, dataset_id):
-    dataset = get_object_or_404(Dataset, id=dataset_id, user=request.user)
+    dataset = get_object_or_404(Dataset, id=dataset_id)
     report = get_object_or_404(ValidationReport, dataset=dataset)
 
     data = {

@@ -1,20 +1,205 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Upload Dataset</title>
+    <title>Upload Dataset — Data Quality Platform</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; }
+
+        :root {
+            --bg: #f0f2f5;
+            --surface: #ffffff;
+            --border: #e2e6ea;
+            --text: #1a1d23;
+            --muted: #6b7280;
+            --accent: #2f6de1;
+            --radius: 12px;
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .topbar {
+            background: #fff;
+            border-bottom: 1px solid var(--border);
+            padding: 0 32px;
+            height: 56px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .topbar-brand {
+            font-size: 0.95rem;
+            font-weight: 700;
+            letter-spacing: -0.01em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .topbar-brand-dot {
+            width: 28px; height: 28px;
+            background: var(--accent);
+            border-radius: 7px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .topbar-brand-dot svg { width: 14px; height: 14px; fill: white; }
+
+        .main {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 24px;
+        }
+
+        .upload-wrap { width: 100%; max-width: 520px; }
+
+        .back-link {
+            font-size: 0.83rem;
+            color: var(--muted);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            margin-bottom: 20px;
+            transition: color 0.15s;
+        }
+
+        .back-link:hover { color: var(--text); }
+
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+        }
+
+        .card h2 {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--text);
+            margin: 0 0 6px;
+        }
+
+        .card-sub {
+            font-size: 0.84rem;
+            color: var(--muted);
+            margin: 0 0 24px;
+        }
+
+        label {
+            font-size: 0.82rem;
+            font-weight: 500;
+            color: var(--text);
+            display: block;
+            margin-bottom: 6px;
+        }
+
+        input[type="text"],
+        input[type="file"] {
+            width: 100%;
+            padding: 9px 14px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.88rem;
+            color: var(--text);
+            background: #fafafa;
+            outline: none;
+            transition: border-color 0.15s, box-shadow 0.15s;
+            margin-bottom: 16px;
+        }
+
+        input[type="text"]:focus,
+        input[type="file"]:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(47, 109, 225, 0.1);
+            background: white;
+        }
+
+        .btn-row {
+            display: flex;
+            gap: 10px;
+            margin-top: 8px;
+        }
+
+        .btn-upload {
+            flex: 1;
+            padding: 10px;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: var(--radius);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.15s;
+        }
+
+        .btn-upload:hover { opacity: 0.9; }
+
+        .btn-back {
+            padding: 10px 18px;
+            background: white;
+            color: var(--muted);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.15s;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .btn-back:hover {
+            background: var(--bg);
+            color: var(--text);
+        }
+
+        p { margin-bottom: 0; }
+    </style>
 </head>
-<body class="bg-light">
-    <div class="container py-5">
-        <div class="card shadow-sm mx-auto" style="max-width: 700px;">
-            <div class="card-body">
-                <h1 class="h3 mb-4">Upload Dataset</h1>
+<body>
+    <nav class="topbar">
+        <div class="topbar-brand">
+            <div class="topbar-brand-dot">
+                <svg viewBox="0 0 24 24"><path d="M3 3h18v2H3V3zm0 4h18v2H3V7zm0 4h12v2H3v-2zm0 4h8v2H3v-2zm0 4h5v2H3v-2z"/></svg>
+            </div>
+            Data Quality Platform
+        </div>
+    </nav>
+
+    <div class="main">
+        <div class="upload-wrap">
+            <a href="/" class="back-link">← Back to Dashboard</a>
+            <div class="card">
+                <h2>Upload Dataset</h2>
+                <p class="card-sub">Upload a CSV file to begin profiling and quality analysis.</p>
 
                 <form method="post" enctype="multipart/form-data">
                     {% csrf_token %}
                     {{ form.as_p }}
-                    <button type="submit" class="btn btn-primary">Upload</button>
-                    <a href="/" class="btn btn-secondary ms-2">Back to Dashboard</a>
+                    <div class="btn-row">
+                        <button type="submit" class="btn-upload">Upload & Profile</button>
+                        <a href="/" class="btn-back">Cancel</a>
+                    </div>
                 </form>
             </div>
         </div>
