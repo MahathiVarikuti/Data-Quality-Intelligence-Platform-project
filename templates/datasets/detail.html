@@ -6,141 +6,129 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400&display=swap" rel="stylesheet">
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
         *, *::before, *::after { box-sizing: border-box; }
-        :root {
-            --bg: #f0f2f5; --surface: #ffffff; --border: #e2e6ea;
-            --text: #1a1d23; --muted: #6b7280; --accent: #2f6de1;
-            --accent-soft: #e8f0fd; --radius: 12px;
-        }
-        body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); margin: 0; }
+        :root { --bg:#f0f2f5;--surface:#fff;--border:#e2e6ea;--text:#1a1d23;--muted:#6b7280;--accent:#2f6de1;--accent-soft:#e8f0fd;--radius:12px; }
+        body { font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);margin:0; }
 
-        .topbar { background:#fff; border-bottom:1px solid var(--border); padding:0 32px; height:56px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:200; }
-        .topbar-brand { font-size:.95rem; font-weight:700; letter-spacing:-.01em; display:flex; align-items:center; gap:10px; color:var(--text); text-decoration:none; }
-        .topbar-dot { width:28px; height:28px; background:var(--accent); border-radius:7px; display:inline-flex; align-items:center; justify-content:center; }
-        .topbar-dot svg { width:14px; height:14px; fill:white; }
-        .btn-sm-outline { font-size:.82rem; font-weight:500; padding:5px 12px; border:1px solid var(--border); border-radius:8px; background:white; color:var(--muted); text-decoration:none; transition:all .15s; }
-        .btn-sm-outline:hover { background:var(--bg); color:var(--text); }
+        /* TOPBAR */
+        .topbar{background:#fff;border-bottom:1px solid var(--border);padding:0 32px;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200;}
+        .topbar-brand{font-size:.95rem;font-weight:700;display:flex;align-items:center;gap:10px;color:var(--text);text-decoration:none;}
+        .topbar-dot{width:28px;height:28px;background:var(--accent);border-radius:7px;display:inline-flex;align-items:center;justify-content:center;}
+        .topbar-dot svg{width:14px;height:14px;fill:white;}
+        .btn-sm-outline{font-size:.82rem;font-weight:500;padding:5px 12px;border:1px solid var(--border);border-radius:8px;background:white;color:var(--muted);text-decoration:none;transition:all .15s;}
+        .btn-sm-outline:hover{background:var(--bg);color:var(--text);}
 
-        .main { max-width:1160px; margin:0 auto; padding:28px 24px; }
-        .breadcrumb-row { display:flex; align-items:center; gap:6px; font-size:.82rem; color:var(--muted); margin-bottom:8px; }
-        .breadcrumb-row a { color:var(--muted); text-decoration:none; } .breadcrumb-row a:hover { color:var(--accent); }
-        .page-title { font-size:1.35rem; font-weight:700; color:var(--text); margin:0; letter-spacing:-.02em; }
+        /* MAIN */
+        .main{max-width:1160px;margin:0 auto;padding:28px 24px;}
+        .breadcrumb-row{display:flex;align-items:center;gap:6px;font-size:.82rem;color:var(--muted);margin-bottom:8px;}
+        .breadcrumb-row a{color:var(--muted);text-decoration:none;} .breadcrumb-row a:hover{color:var(--accent);}
+        .title-row{display:flex;align-items:center;gap:12px;margin-bottom:0;}
+        .page-title{font-size:1.35rem;font-weight:700;margin:0;letter-spacing:-.02em;}
+        .btn-rename{font-size:.78rem;font-weight:500;padding:4px 10px;border:1px solid var(--border);border-radius:8px;background:white;color:var(--muted);cursor:pointer;transition:all .15s;}
+        .btn-rename:hover{background:var(--bg);color:var(--text);}
 
-        .card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:22px; margin-bottom:18px; }
-        .card-title { font-size:.88rem; font-weight:600; color:var(--text); margin:0 0 16px; letter-spacing:-.01em; }
+        /* CARDS */
+        .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px;margin-bottom:18px;}
+        .card-title{font-size:.88rem;font-weight:600;color:var(--text);margin:0 0 16px;letter-spacing:-.01em;}
 
         /* META */
-        .meta-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:16px; }
+        .meta-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:16px;}
         @media(max-width:700px){.meta-grid{grid-template-columns:repeat(2,1fr);}}
-        .meta-item label { font-size:.72rem; font-weight:500; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); display:block; margin-bottom:4px; }
-        .meta-item span { font-size:.9rem; font-weight:500; }
+        .meta-item label{font-size:.72rem;font-weight:500;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);display:block;margin-bottom:4px;}
+        .meta-item span{font-size:.9rem;font-weight:500;}
 
         /* BADGES */
-        .badge { display:inline-block; padding:3px 10px; border-radius:999px; font-size:.75rem; font-weight:600; }
+        .badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:.73rem;font-weight:600;}
         .badge-cleaned{background:#d1fae5;color:#065f46;} .badge-validated{background:#dbeafe;color:#1e40af;}
         .badge-profiled{background:#fef3c7;color:#92400e;} .badge-uploaded{background:#f3f4f6;color:#374151;}
 
         /* SCORES */
-        .scores-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; }
+        .scores-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;}
         @media(max-width:700px){.scores-grid{grid-template-columns:repeat(2,1fr);}}
-        .score-card { background:var(--bg); border:1px solid var(--border); border-radius:10px; padding:16px; text-align:center; }
-        .score-card.overall { background:var(--accent-soft); border-color:#c7d8fa; }
-        .score-label { font-size:.72rem; font-weight:600; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); margin-bottom:6px; }
-        .score-value { font-size:1.6rem; font-weight:700; color:var(--text); line-height:1; }
-        .score-card.overall .score-value { color:var(--accent); }
+        .score-card{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:16px;text-align:center;}
+        .score-card.overall{background:var(--accent-soft);border-color:#c7d8fa;}
+        .score-label{font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:6px;}
+        .score-value{font-size:1.6rem;font-weight:700;color:var(--text);line-height:1;}
+        .score-card.overall .score-value{color:var(--accent);}
 
         /* PROGRESS */
-        .progress-track { background:#e9ecef; border-radius:999px; height:8px; overflow:hidden; margin-top:8px; }
-        .progress-fill { height:100%; background:linear-gradient(90deg,var(--accent),#60a5fa); border-radius:999px; transition:width .4s; }
-        .progress-meta { display:flex; justify-content:space-between; font-size:.78rem; color:var(--muted); margin-top:5px; }
+        .progress-track{background:#e9ecef;border-radius:999px;height:8px;overflow:hidden;margin-top:8px;}
+        .progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),#60a5fa);border-radius:999px;transition:width .4s;}
+        .progress-meta{display:flex;justify-content:space-between;font-size:.78rem;color:var(--muted);margin-top:5px;}
 
         /* ACTIONS */
-        .actions-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); gap:10px; }
-        .btn-action { padding:10px 14px; border-radius:10px; font-family:'DM Sans',sans-serif; font-size:.85rem; font-weight:600; cursor:pointer; border:1px solid; text-decoration:none; display:flex; align-items:center; gap:7px; transition:all .15s; width:100%; justify-content:center; }
-        .btn-warn { background:#fff7ed; color:#c2410c; border-color:#fde8d5; } .btn-warn:hover{background:#ffedd5;}
-        .btn-info { background:#eff6ff; color:#1d4ed8; border-color:#bfdbfe; } .btn-info:hover{background:#dbeafe;}
-        .btn-success { background:#f0fdf4; color:#15803d; border-color:#bbf7d0; } .btn-success:hover{background:#dcfce7;}
-        .btn-purple { background:#faf5ff; color:#7c3aed; border-color:#ddd6fe; } .btn-purple:hover{background:#ede9fe;}
-        .btn-rose { background:#fff1f2; color:#be123c; border-color:#fecdd3; } .btn-rose:hover{background:#ffe4e6;}
-        .btn-slate { background:#f8fafc; color:#475569; border-color:#e2e8f0; } .btn-slate:hover{background:#f1f5f9;}
-        .btn-dark { background:var(--text); color:white; border-color:var(--text); } .btn-dark:hover{opacity:.85;color:white;}
-        .btn-teal { background:#f0fdfa; color:#0f766e; border-color:#99f6e4; } .btn-teal:hover{background:#ccfbf1;}
+        .actions-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(195px,1fr));gap:10px;}
+        .btn-action{padding:10px 14px;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:.84rem;font-weight:600;cursor:pointer;border:1px solid;text-decoration:none;display:flex;align-items:center;gap:7px;transition:all .15s;width:100%;justify-content:center;}
+        .btn-warn{background:#fff7ed;color:#c2410c;border-color:#fde8d5;} .btn-warn:hover{background:#ffedd5;}
+        .btn-info{background:#eff6ff;color:#1d4ed8;border-color:#bfdbfe;} .btn-info:hover{background:#dbeafe;}
+        .btn-success{background:#f0fdf4;color:#15803d;border-color:#bbf7d0;} .btn-success:hover{background:#dcfce7;}
+        .btn-purple{background:#faf5ff;color:#7c3aed;border-color:#ddd6fe;} .btn-purple:hover{background:#ede9fe;}
+        .btn-rose{background:#fff1f2;color:#be123c;border-color:#fecdd3;} .btn-rose:hover{background:#ffe4e6;}
+        .btn-slate{background:#f8fafc;color:#475569;border-color:#e2e8f0;} .btn-slate:hover{background:#f1f5f9;}
+        .btn-dark{background:var(--text);color:white;border-color:var(--text);} .btn-dark:hover{opacity:.85;color:white;}
+        .btn-teal{background:#f0fdfa;color:#0f766e;border-color:#99f6e4;} .btn-teal:hover{background:#ccfbf1;}
 
-        /* TWO COL */
-        .two-col { display:grid; grid-template-columns:1fr 1fr; gap:18px; }
+        /* LAYOUT */
+        .two-col{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
         @media(max-width:700px){.two-col{grid-template-columns:1fr;}}
-
-        /* SUMMARY STATS */
-        .summary-stats { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
-        @media(max-width:600px){.summary-stats{grid-template-columns:1fr;}}
-        .summary-stat { background:var(--bg); border:1px solid var(--border); border-radius:10px; padding:14px 16px; }
-        .summary-stat-label { font-size:.72rem; font-weight:500; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; margin-bottom:4px; }
-        .summary-stat-value { font-size:1.4rem; font-weight:700; }
+        .summary-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+        .summary-stat{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:14px 16px;}
+        .summary-stat-label{font-size:.72rem;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;}
+        .summary-stat-value{font-size:1.4rem;font-weight:700;}
 
         /* LISTS */
-        .issue-list, .rec-list { padding:0; margin:0; list-style:none; }
-        .issue-list li, .rec-list li { padding:8px 0; font-size:.86rem; border-bottom:1px solid #f1f3f5; display:flex; align-items:flex-start; gap:8px; }
-        .issue-list li:last-child, .rec-list li:last-child { border-bottom:none; }
-        .issue-list li::before { content:'!'; font-size:.65rem; font-weight:700; background:#fef3c7; color:#92400e; border-radius:999px; width:16px; height:16px; display:inline-flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:2px; }
-        .rec-list li::before { content:'→'; font-size:.75rem; color:var(--accent); flex-shrink:0; }
+        .issue-list,.rec-list{padding:0;margin:0;list-style:none;}
+        .issue-list li,.rec-list li{padding:8px 0;font-size:.86rem;border-bottom:1px solid #f1f3f5;display:flex;align-items:flex-start;gap:8px;}
+        .issue-list li:last-child,.rec-list li:last-child{border-bottom:none;}
+        .issue-list li::before{content:'!';font-size:.65rem;font-weight:700;background:#fef3c7;color:#92400e;border-radius:999px;width:16px;height:16px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;}
+        .rec-list li::before{content:'→';font-size:.75rem;color:var(--accent);flex-shrink:0;}
 
         /* TABLE */
-        table { width:100%; border-collapse:collapse; }
-        thead th { font-size:.72rem; font-weight:600; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); padding:0 10px 10px; text-align:left; border-bottom:1px solid var(--border); }
-        tbody tr { border-bottom:1px solid #f1f3f5; transition:background .1s; }
-        tbody tr:last-child { border-bottom:none; }
-        tbody tr:hover { background:#fafbfc; }
-        tbody td { padding:10px; font-size:.83rem; }
-        .mono { font-family:'DM Mono',monospace; }
-        .col-name { font-weight:600; }
+        table{width:100%;border-collapse:collapse;}
+        thead th{font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);padding:0 10px 10px;text-align:left;border-bottom:1px solid var(--border);}
+        tbody tr{border-bottom:1px solid #f1f3f5;transition:background .1s;}
+        tbody tr:last-child{border-bottom:none;}
+        tbody tr:hover{background:#fafbfc;}
+        tbody td{padding:10px;font-size:.83rem;}
+        .mono{font-family:'DM Mono',monospace;}
 
-        /* COLUMN PROFILING TABLE */
-        .profile-table th { white-space:nowrap; }
-        .tag { display:inline-block; padding:2px 8px; border-radius:6px; font-size:.72rem; font-weight:600; }
-        .tag-num { background:#eff6ff; color:#1d4ed8; }
-        .tag-text { background:#f3f4f6; color:#374151; }
-        .tag-warn { background:#fef3c7; color:#92400e; }
-        .bar-wrap { background:#f1f5f9; border-radius:999px; height:5px; width:80px; overflow:hidden; display:inline-block; vertical-align:middle; margin-left:6px; }
-        .bar-fill { height:100%; background:var(--accent); border-radius:999px; }
-        .bar-fill.danger { background:#ef4444; }
-
-        /* MODAL overrides */
-        .modal-content { border:1px solid var(--border); border-radius:16px; }
-        .modal-header { border-bottom:1px solid var(--border); padding:18px 22px; }
-        .modal-title { font-size:1rem; font-weight:700; }
-        .modal-body { padding:20px 22px; }
-        .modal-footer { border-top:1px solid var(--border); padding:14px 22px; }
-
-        .col-row { background:var(--bg); border:1px solid var(--border); border-radius:10px; padding:14px; margin-bottom:10px; }
-        .col-row-name { font-size:.88rem; font-weight:600; margin-bottom:8px; }
-        .col-row-meta { font-size:.78rem; color:var(--muted); margin-bottom:8px; }
-        select.form-select, input.form-control { font-size:.85rem; border-radius:8px; border-color:var(--border); }
-        select.form-select:focus, input.form-control:focus { border-color:var(--accent); box-shadow:0 0 0 3px rgba(47,109,225,.1); }
-        .custom-val { margin-top:8px; display:none; }
-        label.check-label { font-size:.85rem; display:flex; align-items:center; gap:8px; padding:6px 0; cursor:pointer; border-bottom:1px solid #f1f3f5; }
-        label.check-label:last-child { border-bottom:none; }
-
-        /* OUTLIER TABLE */
-        .outlier-row td { vertical-align:middle; }
-        .outlier-badge { background:#fff7ed; color:#c2410c; border:1px solid #fde8d5; padding:2px 8px; border-radius:6px; font-size:.75rem; font-weight:600; }
-
-        /* TOAST */
-        .toast-wrap { position:fixed; bottom:24px; right:24px; z-index:9999; display:flex; flex-direction:column; gap:8px; }
-        .toast-msg { background:#1a1d23; color:white; padding:12px 18px; border-radius:10px; font-size:.85rem; font-weight:500; animation:slideup .2s ease; max-width:320px; }
-        .toast-msg.success { border-left:3px solid #10b981; }
-        .toast-msg.error { border-left:3px solid #ef4444; }
-        @keyframes slideup { from{transform:translateY(10px);opacity:0} to{transform:translateY(0);opacity:1} }
+        /* PROFILING */
+        .tag{display:inline-block;padding:2px 8px;border-radius:6px;font-size:.72rem;font-weight:600;}
+        .tag-num{background:#eff6ff;color:#1d4ed8;} .tag-text{background:#f3f4f6;color:#374151;} .tag-warn{background:#fef3c7;color:#92400e;}
+        .bar-wrap{background:#e2e8f0;border-radius:999px;height:6px;width:72px;overflow:hidden;display:inline-block;vertical-align:middle;margin-left:6px;flex-shrink:0;}
+        .bar-fill{height:6px;min-width:2px;border-radius:999px;display:block;}
 
         /* TABS */
-        .tab-nav { display:flex; gap:4px; margin-bottom:16px; border-bottom:2px solid var(--border); }
-        .tab-btn { padding:8px 14px; font-size:.84rem; font-weight:500; color:var(--muted); background:none; border:none; cursor:pointer; border-bottom:2px solid transparent; margin-bottom:-2px; transition:all .15s; }
-        .tab-btn.active { color:var(--accent); border-bottom-color:var(--accent); font-weight:600; }
-        .tab-pane { display:none; } .tab-pane.active { display:block; }
+        .tab-nav{display:flex;gap:4px;margin-bottom:16px;border-bottom:2px solid var(--border);}
+        .tab-btn{padding:8px 14px;font-size:.84rem;font-weight:500;color:var(--muted);background:none;border:none;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .15s;}
+        .tab-btn.active{color:var(--accent);border-bottom-color:var(--accent);font-weight:600;}
+
+        /* MODALS */
+        .modal-content{border:1px solid var(--border);border-radius:16px;}
+        .modal-header{border-bottom:1px solid var(--border);padding:18px 22px;}
+        .modal-title{font-size:1rem;font-weight:700;}
+        .modal-body{padding:20px 22px;}
+        .modal-footer{border-top:1px solid var(--border);padding:14px 22px;}
+        .col-row{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:10px;}
+        .col-row-name{font-size:.88rem;font-weight:600;margin-bottom:6px;}
+        .col-row-meta{font-size:.78rem;color:var(--muted);margin-bottom:8px;}
+        select.form-select,input.form-control{font-size:.85rem;border-radius:8px;border-color:var(--border);}
+        select.form-select:focus,input.form-control:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(47,109,225,.1);}
+        .custom-val{margin-top:8px;display:none;}
+        label.check-label{font-size:.85rem;display:flex;align-items:center;gap:8px;padding:6px 0;cursor:pointer;border-bottom:1px solid #f1f3f5;}
+        label.check-label:last-child{border-bottom:none;}
+        .outlier-badge{background:#fff7ed;color:#c2410c;border:1px solid #fde8d5;padding:2px 8px;border-radius:6px;font-size:.75rem;font-weight:600;}
+
+        /* TOAST */
+        .toast-wrap{position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:8px;}
+        .toast-msg{background:#1a1d23;color:white;padding:12px 18px;border-radius:10px;font-size:.85rem;font-weight:500;animation:slideup .2s ease;max-width:320px;}
+        .toast-msg.success{border-left:3px solid #10b981;} .toast-msg.error{border-left:3px solid #ef4444;}
+        @keyframes slideup{from{transform:translateY(10px);opacity:0}to{transform:translateY(0);opacity:1}}
     </style>
 </head>
 <body>
-
 <nav class="topbar">
     <a href="/" class="topbar-brand">
         <div class="topbar-dot"><svg viewBox="0 0 24 24"><path d="M3 3h18v2H3V3zm0 4h18v2H3V7zm0 4h12v2H3v-2zm0 4h8v2H3v-2zm0 4h5v2H3v-2z"/></svg></div>
@@ -154,8 +142,11 @@
 
 <div class="main">
     <div style="margin-bottom:20px;">
-        <div class="breadcrumb-row"><a href="/">Dashboard</a><span>›</span><span>{{ dataset.name }}</span></div>
-        <h1 class="page-title">{{ dataset.name }}</h1>
+        <div class="breadcrumb-row"><a href="/">Dashboard</a><span>›</span><span id="breadcrumb-name">{{ dataset.name }}</span></div>
+        <div class="title-row">
+            <h1 class="page-title" id="page-title">{{ dataset.name }}</h1>
+            <button class="btn-rename" data-bs-toggle="modal" data-bs-target="#renameModal">✏ Rename</button>
+        </div>
     </div>
 
     <!-- META -->
@@ -173,23 +164,29 @@
             <div class="meta-item"><label>Rows</label><span id="dataset-rows">{{ dataset.num_rows }}</span></div>
             <div class="meta-item"><label>Columns</label><span id="dataset-columns">{{ dataset.num_columns }}</span></div>
             <div class="meta-item"><label>File Size</label><span>{{ dataset.file_size }} bytes</span></div>
-            <div class="meta-item"><label>Uploaded At</label><span>{{ dataset.uploaded_at }}</span></div>
+            <div class="meta-item"><label>Uploaded</label><span>{{ dataset.uploaded_at|date:"d M Y" }}</span></div>
         </div>
     </div>
 
-    <!-- SCORES -->
-    <div class="card">
-        <div class="card-title">Quality Scores</div>
-        <div class="scores-grid">
-            <div class="score-card"><div class="score-label">Completeness</div><div class="score-value" id="completeness-score">{{ completeness_score }}</div></div>
-            <div class="score-card"><div class="score-label">Uniqueness</div><div class="score-value" id="uniqueness-score">{{ uniqueness_score }}</div></div>
-            <div class="score-card"><div class="score-label">Validity</div><div class="score-value" id="validity-score">{{ validity_score }}</div></div>
-            <div class="score-card overall"><div class="score-label">Overall</div><div class="score-value" id="overall-score">{{ overall_score }}</div></div>
+    <!-- SCORES + CHART -->
+    <div class="two-col">
+        <div class="card">
+            <div class="card-title">Quality Scores</div>
+            <div class="scores-grid">
+                <div class="score-card"><div class="score-label">Completeness</div><div class="score-value" id="completeness-score">{{ completeness_score }}</div></div>
+                <div class="score-card"><div class="score-label">Uniqueness</div><div class="score-value" id="uniqueness-score">{{ uniqueness_score }}</div></div>
+                <div class="score-card"><div class="score-label">Validity</div><div class="score-value" id="validity-score">{{ validity_score }}</div></div>
+                <div class="score-card overall"><div class="score-label">Overall</div><div class="score-value" id="overall-score">{{ overall_score }}</div></div>
+            </div>
+            <div class="progress-meta" style="margin-top:16px;">
+                <span>Overall Quality Score</span><span id="overall-score-pct">{{ overall_score }}%</span>
+            </div>
+            <div class="progress-track"><div class="progress-fill" id="overall-score-bar" style="width:{{ overall_score }}%;"></div></div>
         </div>
-        <div class="progress-meta" style="margin-top:16px;">
-            <span>Overall Quality Score</span><span id="overall-score-pct">{{ overall_score }}%</span>
+        <div class="card">
+            <div class="card-title">Quality Radar</div>
+            <canvas id="radarChart" height="210"></canvas>
         </div>
-        <div class="progress-track"><div class="progress-fill" id="overall-score-bar" style="width:{{ overall_score }}%;"></div></div>
     </div>
 
     <!-- ACTIONS -->
@@ -198,11 +195,11 @@
         <div class="actions-grid">
             <button class="btn-action btn-warn" id="btn-remove-dupes">Remove Duplicates</button>
             <button class="btn-action btn-info" id="btn-fill-missing" data-bs-toggle="modal" data-bs-target="#fillMissingModal">Fill Missing Values</button>
-            <button class="btn-action btn-purple" id="btn-outliers" data-bs-toggle="modal" data-bs-target="#outliersModal">Outlier Detection</button>
-            <button class="btn-action btn-slate" id="btn-remove-cols" data-bs-toggle="modal" data-bs-target="#removeColsModal">Remove Columns</button>
-            <button class="btn-action btn-rose" id="btn-fix-text" data-bs-toggle="modal" data-bs-target="#fixTextModal">Fix Text / Casing</button>
+            <button class="btn-action btn-purple" data-bs-toggle="modal" data-bs-target="#outliersModal">Outlier Detection</button>
+            <button class="btn-action btn-slate" data-bs-toggle="modal" data-bs-target="#removeColsModal">Remove Columns</button>
+            <button class="btn-action btn-rose" data-bs-toggle="modal" data-bs-target="#fixTextModal">Fix Text / Casing</button>
             <a href="/datasets/{{ dataset.id }}/quality-report/" class="btn-action btn-teal">Download Report</a>
-            <a href="{% url 'export_dataset' dataset.id %}" class="btn-action btn-success">Download CSV</a>
+            <a href="{% url 'export_dataset' dataset.id %}" class="btn-action btn-success">⬇ Download CSV</a>
             <button class="btn-action btn-dark" id="btn-refresh">↻ Refresh Report</button>
         </div>
     </div>
@@ -211,15 +208,11 @@
     <div class="two-col">
         <div class="card">
             <div class="card-title">Issue Summary</div>
-            <ul class="issue-list" id="issue-summary-list">
-                {% for issue in issue_summary %}<li>{{ issue }}</li>{% endfor %}
-            </ul>
+            <ul class="issue-list" id="issue-summary-list">{% for issue in issue_summary %}<li>{{ issue }}</li>{% endfor %}</ul>
         </div>
         <div class="card">
             <div class="card-title">Recommendations</div>
-            <ul class="rec-list" id="recommendations-list">
-                {% for rec in recommendations %}<li>{{ rec }}</li>{% endfor %}
-            </ul>
+            <ul class="rec-list" id="recommendations-list">{% for rec in recommendations %}<li>{{ rec }}</li>{% endfor %}</ul>
         </div>
     </div>
 
@@ -251,27 +244,20 @@
             <button class="tab-btn" data-tab="issues">With Issues</button>
         </div>
         <div style="overflow-x:auto;">
-            <table class="profile-table">
+            <table>
                 <thead>
-                    <tr>
-                        <th>Column</th><th>Type</th><th>Missing</th><th>Unique</th>
-                        <th>Mean</th><th>Median</th><th>Min</th><th>Max</th>
-                        <th>Top Values</th><th>Flags</th>
-                    </tr>
+                    <tr><th>Column</th><th>Type</th><th>Missing</th><th>Unique</th><th>Mean</th><th>Median</th><th>Min</th><th>Max</th><th>Top Values</th><th>Flags</th></tr>
                 </thead>
                 <tbody id="profile-tbody">
                 {% for s in col_stats %}
                 <tr data-type="{% if s.is_numeric %}numeric{% else %}text{% endif %}"
                     data-issues="{% if s.missing > 0 or s.date_issues > 0 or s.type_mismatch %}1{% else %}0{% endif %}">
-                    <td class="col-name">{{ s.name }}</td>
-                    <td>
-                        {% if s.is_numeric %}<span class="tag tag-num">Numeric</span>
-                        {% else %}<span class="tag tag-text">Text</span>{% endif %}
-                    </td>
+                    <td style="font-weight:600;">{{ s.name }}</td>
+                    <td>{% if s.is_numeric %}<span class="tag tag-num">Numeric</span>{% else %}<span class="tag tag-text">Text</span>{% endif %}</td>
                     <td>
                         {{ s.missing }}
                         {% if s.missing > 0 %}
-                        <span class="bar-wrap"><span class="bar-fill {% if s.missing_pct > 30 %}danger{% endif %}" style="width:{{ s.missing_pct }}%;"></span></span>
+                        <span class="bar-wrap"><span class="bar-fill" style="width:{{ s.missing_pct }}%; background:{% if s.missing_pct > 30 %}#ef4444{% else %}#2f6de1{% endif %};"></span></span>
                         <span style="font-size:.72rem;color:var(--muted);">{{ s.missing_pct }}%</span>
                         {% endif %}
                     </td>
@@ -280,12 +266,10 @@
                     <td class="mono">{% if s.median is not None %}{{ s.median }}{% else %}—{% endif %}</td>
                     <td class="mono">{% if s.min is not None %}{{ s.min }}{% else %}—{% endif %}</td>
                     <td class="mono">{% if s.max is not None %}{{ s.max }}{% else %}—{% endif %}</td>
-                    <td style="font-size:.78rem;color:var(--muted);">
-                        {% for tv in s.top_values %}{{ tv.val }} ({{ tv.count }}){% if not forloop.last %}, {% endif %}{% endfor %}
-                    </td>
+                    <td style="font-size:.78rem;color:var(--muted);">{% for tv in s.top_values %}{{ tv.val }} ({{ tv.count }}){% if not forloop.last %}, {% endif %}{% endfor %}</td>
                     <td>
-                        {% if s.type_mismatch %}<span class="tag tag-warn" title="Stored as text but looks numeric">Type?</span> {% endif %}
-                        {% if s.date_issues > 0 %}<span class="tag tag-warn" title="{{ s.date_issues }} bad dates"> {{ s.date_issues }}</span>{% endif %}
+                        {% if s.type_mismatch %}<span class="tag tag-warn">Type?</span> {% endif %}
+                        {% if s.date_issues > 0 %}<span class="tag tag-warn">📅 {{ s.date_issues }}</span>{% endif %}
                         {% if s.missing == 0 and not s.type_mismatch and s.date_issues == 0 %}<span style="color:#10b981;font-size:.75rem;">✓ OK</span>{% endif %}
                     </td>
                 </tr>
@@ -295,18 +279,14 @@
         </div>
     </div>
 
-    <!-- PREVIEW + MISSING BY COL -->
+    <!-- PREVIEW + MISSING -->
     <div class="two-col">
         <div class="card">
             <div class="card-title">Missing Values by Column</div>
             <div style="overflow-x:auto;max-height:300px;overflow-y:auto;">
                 <table>
                     <thead><tr><th>Column</th><th>Missing</th></tr></thead>
-                    <tbody>
-                        {% for col, count in missing_summary.items %}
-                        <tr><td style="font-weight:500;">{{ col }}</td><td class="mono">{{ count }}</td></tr>
-                        {% endfor %}
-                    </tbody>
+                    <tbody>{% for col, count in missing_summary.items %}<tr><td style="font-weight:500;">{{ col }}</td><td class="mono">{{ count }}</td></tr>{% endfor %}</tbody>
                 </table>
             </div>
         </div>
@@ -315,32 +295,40 @@
             <div style="overflow-x:auto;max-height:300px;overflow-y:auto;">
                 <table>
                     <thead><tr>{% for col in columns %}<th>{{ col }}</th>{% endfor %}</tr></thead>
-                    <tbody>
-                        {% for row in preview_data %}<tr>{% for col in columns %}<td class="mono">{{ row|get_item:col }}</td>{% endfor %}</tr>{% endfor %}
-                    </tbody>
+                    <tbody>{% for row in preview_data %}<tr>{% for col in columns %}<td class="mono">{{ row|get_item:col }}</td>{% endfor %}</tr>{% endfor %}</tbody>
                 </table>
             </div>
         </div>
     </div>
 </div>
 
-<!-- ===================== MODALS ===================== -->
+<!-- ============ MODALS ============ -->
+
+<!-- RENAME MODAL -->
+<div class="modal fade" id="renameModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header"><h5 class="modal-title">Rename Dataset</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body">
+                <label style="font-size:.85rem;font-weight:500;display:block;margin-bottom:6px;">New Name</label>
+                <input type="text" id="rename-input" class="form-control" value="{{ dataset.name }}" maxlength="255">
+                <div style="font-size:.78rem;color:#ef4444;margin-top:5px;display:none;" id="rename-error">Name cannot be empty.</div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button class="btn btn-primary" id="apply-rename-btn">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <!-- FILL MISSING MODAL -->
 <div class="modal fade" id="fillMissingModal" tabindex="-1">
     <div class="modal-dialog modal-lg modal-dialog-scrollable">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Fill Missing Values</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body" id="fill-missing-body">
-                <div class="text-center py-4 text-muted">Loading columns…</div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button class="btn btn-primary" id="apply-fill-btn">Apply</button>
-            </div>
+            <div class="modal-header"><h5 class="modal-title">Fill Missing Values</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body" id="fill-missing-body"><div class="text-center py-4 text-muted">Loading columns…</div></div>
+            <div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button><button class="btn btn-primary" id="apply-fill-btn">Apply</button></div>
         </div>
     </div>
 </div>
@@ -349,17 +337,9 @@
 <div class="modal fade" id="outliersModal" tabindex="-1">
     <div class="modal-dialog modal-lg modal-dialog-scrollable">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Outlier Detection (IQR Method)</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body" id="outliers-body">
-                <div class="text-center py-4 text-muted">Scanning for outliers…</div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button class="btn btn-danger" id="apply-outliers-btn">Remove Selected Outlier Rows</button>
-            </div>
+            <div class="modal-header"><h5 class="modal-title">Outlier Detection (IQR Method)</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body" id="outliers-body"><div class="text-center py-4 text-muted">Scanning for outliers…</div></div>
+            <div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button><button class="btn btn-danger" id="apply-outliers-btn">Remove Selected Outlier Rows</button></div>
         </div>
     </div>
 </div>
@@ -368,24 +348,14 @@
 <div class="modal fade" id="removeColsModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-scrollable">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Remove Columns</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
+            <div class="modal-header"><h5 class="modal-title">Remove Columns</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
             <div class="modal-body">
-                <p style="font-size:.85rem;color:var(--muted);">Select columns to permanently remove from the dataset.</p>
+                <p style="font-size:.85rem;color:var(--muted);">Select columns to permanently remove.</p>
                 <div id="remove-cols-list">
-                    {% for col in columns %}
-                    <label class="check-label">
-                        <input type="checkbox" class="remove-col-check" value="{{ col }}"> {{ col }}
-                    </label>
-                    {% endfor %}
+                    {% for col in columns %}<label class="check-label"><input type="checkbox" class="remove-col-check" value="{{ col }}"> {{ col }}</label>{% endfor %}
                 </div>
             </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button class="btn btn-danger" id="apply-remove-cols-btn">Remove Selected</button>
-            </div>
+            <div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button><button class="btn btn-danger" id="apply-remove-cols-btn">Remove Selected</button></div>
         </div>
     </div>
 </div>
@@ -394,23 +364,14 @@
 <div class="modal fade" id="fixTextModal" tabindex="-1">
     <div class="modal-dialog modal-lg modal-dialog-scrollable">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Fix Text / Casing</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body" id="fix-text-body">
-                <div class="text-center py-4 text-muted">Loading text columns…</div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button class="btn btn-primary" id="apply-fix-text-btn">Apply</button>
-            </div>
+            <div class="modal-header"><h5 class="modal-title">Fix Text / Casing</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body" id="fix-text-body"><div class="text-center py-4 text-muted">Loading text columns…</div></div>
+            <div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button><button class="btn btn-primary" id="apply-fix-text-btn">Apply</button></div>
         </div>
     </div>
 </div>
 
 <div class="toast-wrap" id="toast-wrap"></div>
-
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
 const DATASET_ID = {{ dataset.id }};
@@ -423,6 +384,45 @@ function toast(msg, type='success') {
     document.getElementById('toast-wrap').appendChild(t);
     setTimeout(() => t.remove(), 3500);
 }
+
+// Radar chart
+const radarCtx = document.getElementById('radarChart').getContext('2d');
+new Chart(radarCtx, {
+    type: 'radar',
+    data: {
+        labels: ['Completeness', 'Uniqueness', 'Validity', 'Consistency'],
+        datasets: [{
+            label: 'Quality Score',
+            data: [{{ completeness_score }}, {{ uniqueness_score }}, {{ validity_score }}, {{ consistency_score }}],
+            backgroundColor: 'rgba(47,109,225,0.12)',
+            borderColor: '#2f6de1',
+            pointBackgroundColor: '#2f6de1',
+            pointBorderColor: '#fff',
+            pointHoverBackgroundColor: '#fff',
+            pointHoverBorderColor: '#2f6de1',
+            borderWidth: 2,
+        }]
+    },
+    options: {
+        scales: { r: { min: 0, max: 100, ticks: { stepSize: 25, font: { size: 10 } }, pointLabels: { font: { family: 'DM Sans', size: 11 } } } },
+        plugins: { legend: { display: false } }
+    }
+});
+
+// Tab switching
+document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        const tab = this.dataset.tab;
+        document.querySelectorAll('#profile-tbody tr').forEach(row => {
+            if (tab === 'all') row.style.display = '';
+            else if (tab === 'numeric') row.style.display = row.dataset.type === 'numeric' ? '' : 'none';
+            else if (tab === 'text') row.style.display = row.dataset.type === 'text' ? '' : 'none';
+            else if (tab === 'issues') row.style.display = row.dataset.issues === '1' ? '' : 'none';
+        });
+    });
+});
 
 function refreshReport() {
     $.get(`/api/report/${DATASET_ID}/`, function(data) {
@@ -443,181 +443,132 @@ function refreshReport() {
     });
 }
 
-// Tab switching (column profiling)
-document.querySelectorAll('.tab-btn').forEach(btn => {
-    btn.addEventListener('click', function() {
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        this.classList.add('active');
-        const tab = this.dataset.tab;
-        document.querySelectorAll('#profile-tbody tr').forEach(row => {
-            if (tab === 'all') row.style.display = '';
-            else if (tab === 'numeric') row.style.display = row.dataset.type === 'numeric' ? '' : 'none';
-            else if (tab === 'text') row.style.display = row.dataset.type === 'text' ? '' : 'none';
-            else if (tab === 'issues') row.style.display = row.dataset.issues === '1' ? '' : 'none';
-        });
-    });
-});
-
 // Remove duplicates
 $('#btn-remove-dupes').click(function() {
-    $.ajax({
-        url: `/datasets/${DATASET_ID}/remove-duplicates/`,
-        type: 'POST',
-        headers: {'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': CSRF},
-        success(data) { refreshReport(); toast(`${data.message} Removed: ${data.removed_count}`); setTimeout(() => location.reload(), 1500); },
-        error() { toast('Failed to remove duplicates.', 'error'); }
+    $.ajax({ url:`/datasets/${DATASET_ID}/remove-duplicates/`, type:'POST',
+        headers:{'X-Requested-With':'XMLHttpRequest','X-CSRFToken':CSRF},
+        success(data){ refreshReport(); toast(`${data.message} Removed: ${data.removed_count}`); setTimeout(()=>location.reload(),1500); },
+        error(){ toast('Failed to remove duplicates.','error'); }
     });
 });
 
-// Refresh
-$('#btn-refresh').click(function() { refreshReport(); toast('Report refreshed.'); });
+$('#btn-refresh').click(function(){ refreshReport(); toast('Report refreshed.'); });
 
-// ---- FILL MISSING MODAL ----
+// RENAME
+$('#apply-rename-btn').click(function() {
+    const name = $('#rename-input').val().trim();
+    if (!name) { $('#rename-error').show(); return; }
+    $('#rename-error').hide();
+    $.ajax({ url:`/datasets/${DATASET_ID}/update-name/`, type:'POST', contentType:'application/json',
+        headers:{'X-CSRFToken':CSRF}, data:JSON.stringify({name}),
+        success(data){
+            bootstrap.Modal.getInstance(document.getElementById('renameModal')).hide();
+            $('#page-title').text(data.name);
+            $('#breadcrumb-name').text(data.name);
+            document.title = data.name + ' — Data Quality Platform';
+            toast('Dataset renamed to "' + data.name + '"');
+        },
+        error(xhr){ toast(xhr.responseJSON?.error || 'Failed to rename.','error'); }
+    });
+});
+
+// FILL MISSING
 $('#fillMissingModal').on('show.bs.modal', function() {
     $.get(`/datasets/${DATASET_ID}/fill-missing-values/`, function(data) {
-        if (!data.columns || data.columns.length === 0) {
+        if (!data.columns || !data.columns.length) {
             $('#fill-missing-body').html('<div class="text-center py-3 text-success">✓ No missing values found!</div>');
             return;
         }
         let html = '<p style="font-size:.84rem;color:var(--muted);margin-bottom:14px;">Set a fill strategy per column with missing values.</p>';
         data.columns.forEach(col => {
             let opts = `<option value="mode">Mode (most frequent)</option>`;
-            if (col.is_numeric) {
-                opts = `<option value="mean">Mean (avg = ${col.mean ?? '?'})</option>
-                        <option value="median">Median (${col.median ?? '?'})</option>` + opts;
-            }
+            if (col.is_numeric) opts = `<option value="mean">Mean (avg = ${col.mean ?? '?'})</option><option value="median">Median (${col.median ?? '?'})</option>` + opts;
             opts += `<option value="custom">Custom value</option><option value="drop">Drop rows</option>`;
             html += `<div class="col-row" data-col="${col.name}">
                 <div class="col-row-name">${col.name}</div>
-                <div class="col-row-meta">${col.missing} missing value${col.missing > 1 ? 's' : ''} · ${col.is_numeric ? 'Numeric' : 'Text'}</div>
-                <select class="form-select fill-strategy-select">
-                    ${opts}
-                </select>
-                <div class="custom-val">
-                    <input type="text" class="form-control custom-fill-val mt-2" placeholder="Enter custom value…">
-                </div>
+                <div class="col-row-meta">${col.missing} missing · ${col.is_numeric ? 'Numeric' : 'Text'}</div>
+                <select class="form-select fill-strategy-select">${opts}</select>
+                <div class="custom-val"><input type="text" class="form-control custom-fill-val mt-2" placeholder="Enter custom value…"></div>
             </div>`;
         });
         $('#fill-missing-body').html(html);
-        // Show/hide custom input
-        $(document).on('change', '.fill-strategy-select', function() {
-            $(this).closest('.col-row').find('.custom-val').toggle($(this).val() === 'custom');
+        $(document).on('change','.fill-strategy-select',function(){
+            $(this).closest('.col-row').find('.custom-val').toggle($(this).val()==='custom');
         });
     });
 });
 
 $('#apply-fill-btn').click(function() {
     const strategies = {};
-    $('.col-row').each(function() {
-        const col = $(this).data('col');
-        const method = $(this).find('.fill-strategy-select').val();
-        const custom_value = $(this).find('.custom-fill-val').val();
-        strategies[col] = {method, custom_value};
+    $('.col-row').each(function(){
+        const col=$(this).data('col');
+        strategies[col]={method:$(this).find('.fill-strategy-select').val(),custom_value:$(this).find('.custom-fill-val').val()};
     });
-    $.ajax({
-        url: `/datasets/${DATASET_ID}/fill-missing-values/`,
-        type: 'POST',
-        contentType: 'application/json',
-        headers: {'X-CSRFToken': CSRF},
-        data: JSON.stringify({strategies}),
-        success(data) {
-            bootstrap.Modal.getInstance(document.getElementById('fillMissingModal')).hide();
-            refreshReport();
-            toast(`${data.message} Filled: ${data.filled_count}, Dropped rows: ${data.dropped_rows}`);
-            setTimeout(() => location.reload(), 1800);
-        },
-        error() { toast('Failed to fill missing values.', 'error'); }
+    $.ajax({ url:`/datasets/${DATASET_ID}/fill-missing-values/`, type:'POST', contentType:'application/json',
+        headers:{'X-CSRFToken':CSRF}, data:JSON.stringify({strategies}),
+        success(data){ bootstrap.Modal.getInstance(document.getElementById('fillMissingModal')).hide(); refreshReport(); toast(`${data.message} Filled: ${data.filled_count}, Dropped rows: ${data.dropped_rows}`); setTimeout(()=>location.reload(),1800); },
+        error(){ toast('Failed to fill missing values.','error'); }
     });
 });
 
-// ---- OUTLIERS MODAL ----
+// OUTLIERS
 $('#outliersModal').on('show.bs.modal', function() {
     $.get(`/datasets/${DATASET_ID}/detect-outliers/`, function(data) {
-        if (!data.outliers || data.outliers.length === 0) {
-            $('#outliers-body').html('<div class="text-center py-3 text-success">✓ No outliers detected in numeric columns.</div>');
-            return;
+        if (!data.outliers || !data.outliers.length) {
+            $('#outliers-body').html('<div class="text-center py-3 text-success">✓ No outliers detected.</div>'); return;
         }
-        let html = '<p style="font-size:.84rem;color:var(--muted);margin-bottom:12px;">Outliers detected using IQR method. Select columns to remove their outlier rows.</p>';
+        let html = '<p style="font-size:.84rem;color:var(--muted);margin-bottom:12px;">Outliers detected using IQR method.</p>';
         html += '<table style="width:100%;border-collapse:collapse;font-size:.84rem;"><thead><tr style="border-bottom:1px solid var(--border);"><th style="padding:6px 8px;"><input type="checkbox" id="outlier-check-all"> All</th><th style="padding:6px 8px;">Column</th><th style="padding:6px 8px;">Outlier Rows</th><th style="padding:6px 8px;">Valid Range</th><th style="padding:6px 8px;">Data Range</th></tr></thead><tbody>';
         data.outliers.forEach(o => {
-            html += `<tr class="outlier-row">
-                <td style="padding:8px;"><input type="checkbox" class="outlier-col-check" value="${o.column}" checked></td>
+            html += `<tr><td style="padding:8px;"><input type="checkbox" class="outlier-col-check" value="${o.column}" checked></td>
                 <td style="padding:8px;font-weight:600;">${o.column}</td>
                 <td style="padding:8px;"><span class="outlier-badge">${o.count} rows</span></td>
                 <td style="padding:8px;font-family:'DM Mono',monospace;font-size:.78rem;">[${o.lower_bound}, ${o.upper_bound}]</td>
-                <td style="padding:8px;font-family:'DM Mono',monospace;font-size:.78rem;">[${o.min_val}, ${o.max_val}]</td>
-            </tr>`;
+                <td style="padding:8px;font-family:'DM Mono',monospace;font-size:.78rem;">[${o.min_val}, ${o.max_val}]</td></tr>`;
         });
         html += '</tbody></table>';
         $('#outliers-body').html(html);
-        $('#outlier-check-all').on('change', function() {
-            $('.outlier-col-check').prop('checked', this.checked);
-        });
+        $('#outlier-check-all').on('change', function(){ $('.outlier-col-check').prop('checked',this.checked); });
     });
 });
 
 $('#apply-outliers-btn').click(function() {
-    const cols = $('.outlier-col-check:checked').map((_, el) => el.value).get();
-    if (!cols.length) { toast('Select at least one column.', 'error'); return; }
-    $.ajax({
-        url: `/datasets/${DATASET_ID}/remove-outliers/`,
-        type: 'POST', contentType: 'application/json',
-        headers: {'X-CSRFToken': CSRF},
-        data: JSON.stringify({columns: cols}),
-        success(data) {
-            bootstrap.Modal.getInstance(document.getElementById('outliersModal')).hide();
-            refreshReport();
-            toast(`${data.message}`);
-            setTimeout(() => location.reload(), 1800);
-        },
-        error() { toast('Failed to remove outliers.', 'error'); }
+    const cols = $('.outlier-col-check:checked').map((_,el)=>el.value).get();
+    if (!cols.length){ toast('Select at least one column.','error'); return; }
+    $.ajax({ url:`/datasets/${DATASET_ID}/remove-outliers/`, type:'POST', contentType:'application/json',
+        headers:{'X-CSRFToken':CSRF}, data:JSON.stringify({columns:cols}),
+        success(data){ bootstrap.Modal.getInstance(document.getElementById('outliersModal')).hide(); refreshReport(); toast(data.message); setTimeout(()=>location.reload(),1800); },
+        error(){ toast('Failed to remove outliers.','error'); }
     });
 });
 
-// ---- REMOVE COLUMNS ----
+// REMOVE COLUMNS
 $('#apply-remove-cols-btn').click(function() {
-    const cols = $('.remove-col-check:checked').map((_, el) => el.value).get();
-    if (!cols.length) { toast('Select at least one column.', 'error'); return; }
+    const cols = $('.remove-col-check:checked').map((_,el)=>el.value).get();
+    if (!cols.length){ toast('Select at least one column.','error'); return; }
     if (!confirm(`Remove ${cols.length} column(s)? This cannot be undone.`)) return;
-    $.ajax({
-        url: `/datasets/${DATASET_ID}/remove-columns/`,
-        type: 'POST', contentType: 'application/json',
-        headers: {'X-CSRFToken': CSRF},
-        data: JSON.stringify({columns: cols}),
-        success(data) {
-            bootstrap.Modal.getInstance(document.getElementById('removeColsModal')).hide();
-            refreshReport();
-            toast(`${data.message}`);
-            setTimeout(() => location.reload(), 1800);
-        },
-        error() { toast('Failed to remove columns.', 'error'); }
+    $.ajax({ url:`/datasets/${DATASET_ID}/remove-columns/`, type:'POST', contentType:'application/json',
+        headers:{'X-CSRFToken':CSRF}, data:JSON.stringify({columns:cols}),
+        success(data){ bootstrap.Modal.getInstance(document.getElementById('removeColsModal')).hide(); refreshReport(); toast(data.message); setTimeout(()=>location.reload(),1800); },
+        error(){ toast('Failed to remove columns.','error'); }
     });
 });
 
-// ---- FIX TEXT MODAL ----
+// FIX TEXT
 $('#fixTextModal').on('show.bs.modal', function() {
     $.get(`/datasets/${DATASET_ID}/fix-text/`, function(data) {
-        if (!data.text_columns || data.text_columns.length === 0) {
-            $('#fix-text-body').html('<div class="text-center py-3 text-muted">No text columns found.</div>');
-            return;
+        if (!data.text_columns || !data.text_columns.length) {
+            $('#fix-text-body').html('<div class="text-center py-3 text-muted">No text columns found.</div>'); return;
         }
         let html = '<p style="font-size:.84rem;color:var(--muted);margin-bottom:14px;">Choose transformations per text column.</p>';
         data.text_columns.forEach(col => {
             html += `<div class="col-row" data-col="${col}">
                 <div class="col-row-name">${col}</div>
-                <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:6px;">
-                    <label style="font-size:.83rem;display:flex;align-items:center;gap:6px;cursor:pointer;">
-                        <input type="checkbox" class="text-op" data-op="trim"> Trim whitespace
-                    </label>
-                    <label style="font-size:.83rem;display:flex;align-items:center;gap:6px;cursor:pointer;">
-                        <input type="checkbox" class="text-op" data-op="lower"> lowercase
-                    </label>
-                    <label style="font-size:.83rem;display:flex;align-items:center;gap:6px;cursor:pointer;">
-                        <input type="checkbox" class="text-op" data-op="upper"> UPPERCASE
-                    </label>
-                    <label style="font-size:.83rem;display:flex;align-items:center;gap:6px;cursor:pointer;">
-                        <input type="checkbox" class="text-op" data-op="title"> Title Case
-                    </label>
+                <div style="display:flex;flex-wrap:wrap;gap:12px;margin-top:6px;">
+                    <label style="font-size:.83rem;display:flex;align-items:center;gap:6px;cursor:pointer;"><input type="checkbox" class="text-op" data-op="trim"> Trim whitespace</label>
+                    <label style="font-size:.83rem;display:flex;align-items:center;gap:6px;cursor:pointer;"><input type="checkbox" class="text-op" data-op="lower"> lowercase</label>
+                    <label style="font-size:.83rem;display:flex;align-items:center;gap:6px;cursor:pointer;"><input type="checkbox" class="text-op" data-op="upper"> UPPERCASE</label>
+                    <label style="font-size:.83rem;display:flex;align-items:center;gap:6px;cursor:pointer;"><input type="checkbox" class="text-op" data-op="title"> Title Case</label>
                 </div>
             </div>`;
         });
@@ -627,23 +578,16 @@ $('#fixTextModal').on('show.bs.modal', function() {
 
 $('#apply-fix-text-btn').click(function() {
     const operations = {};
-    $('.col-row').each(function() {
-        const col = $(this).data('col');
-        const ops = $(this).find('.text-op:checked').map((_, el) => el.dataset.op).get();
-        if (ops.length) operations[col] = ops;
+    $('.col-row').each(function(){
+        const col=$(this).data('col');
+        const ops=$(this).find('.text-op:checked').map((_,el)=>el.dataset.op).get();
+        if (ops.length) operations[col]=ops;
     });
-    if (!Object.keys(operations).length) { toast('Select at least one operation.', 'error'); return; }
-    $.ajax({
-        url: `/datasets/${DATASET_ID}/fix-text/`,
-        type: 'POST', contentType: 'application/json',
-        headers: {'X-CSRFToken': CSRF},
-        data: JSON.stringify({operations}),
-        success(data) {
-            bootstrap.Modal.getInstance(document.getElementById('fixTextModal')).hide();
-            toast(data.message);
-            setTimeout(() => location.reload(), 1800);
-        },
-        error() { toast('Failed to apply text fixes.', 'error'); }
+    if (!Object.keys(operations).length){ toast('Select at least one operation.','error'); return; }
+    $.ajax({ url:`/datasets/${DATASET_ID}/fix-text/`, type:'POST', contentType:'application/json',
+        headers:{'X-CSRFToken':CSRF}, data:JSON.stringify({operations}),
+        success(data){ bootstrap.Modal.getInstance(document.getElementById('fixTextModal')).hide(); toast(data.message); setTimeout(()=>location.reload(),1800); },
+        error(){ toast('Failed to apply text fixes.','error'); }
     });
 });
 </script>

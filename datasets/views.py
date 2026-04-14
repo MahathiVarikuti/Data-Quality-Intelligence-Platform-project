@@ -1,8 +1,11 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import FileResponse, JsonResponse, HttpResponse
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.models import User
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
 from .forms import DatasetUploadForm
 from .models import Dataset, ValidationReport
-from django.contrib.auth.models import User
 import pandas as pd
 import numpy as np
 import os
@@ -10,45 +13,65 @@ import json
 import re
 
 
-def get_default_user():
-    user, _ = User.objects.get_or_create(username='default', defaults={'password': 'unused'})
-    return user
+# ─────────────────────────────────────────
+#  AUTH VIEWS
+# ─────────────────────────────────────────
 
-
-def home(request):
-    query = request.GET.get('q', '')
-    datasets = Dataset.objects.all().order_by('-uploaded_at')
-    if query:
-        datasets = datasets.filter(name__icontains=query)
-    total_datasets = datasets.count()
-    cleaned_count = datasets.filter(status='cleaned').count()
-    validated_count = datasets.filter(status='validated').count()
-    profiled_count = datasets.filter(status='profiled').count()
-    return render(request, 'datasets/home.html', {
-        'datasets': datasets, 'query': query,
-        'total_datasets': total_datasets, 'cleaned_count': cleaned_count,
-        'validated_count': validated_count, 'profiled_count': profiled_count,
-    })
-
-
-def upload_dataset(request):
+def register_view(request):
+    if request.user.is_authenticated:
+        return redirect('home')
     if request.method == 'POST':
-        form = DatasetUploadForm(request.POST, request.FILES)
-        if form.is_valid():
-            dataset = form.save(commit=False)
-            dataset.user = get_default_user()
-            dataset.file_size = request.FILES['file'].size
-            dataset.save()
-            df = pd.read_csv(dataset.file.path)
-            dataset.num_rows = df.shape[0]
-            dataset.num_columns = df.shape[1]
-            dataset.status = 'profiled'
-            dataset.save()
-            return redirect('dataset_detail', dataset_id=dataset.id)
-    else:
-        form = DatasetUploadForm()
-    return render(request, 'datasets/upload.html', {'form': form})
+        username = request.POST.get('username', '').strip()
+        email = request.POST.get('email', '').strip()
+        password1 = request.POST.get('password1', '')
+        password2 = request.POST.get('password2', '')
+        errors = {}
+        if not username:
+            errors['username'] = 'Username is required.'
+        elif User.objects.filter(username=username).exists():
+            errors['username'] = 'Username already taken.'
+        if not email:
+            errors['email'] = 'Email is required.'
+        if not password1 or len(password1) < 6:
+            errors['password1'] = 'Password must be at least 6 characters.'
+        if password1 != password2:
+            errors['password2'] = 'Passwords do not match.'
+        if errors:
+            return render(request, 'registration/register.html', {'errors': errors, 'vals': request.POST})
+        user = User.objects.create_user(username=username, email=email, password=password1)
+        login(request, user)
+        messages.success(request, f'Welcome, {username}! Your account has been created.')
+        return redirect('home')
+    return render(request, 'registration/register.html', {})
 
+
+def login_view(request):
+    if request.user.is_authenticated:
+        return redirect('home')
+    error = None
+    if request.method == 'POST':
+        username = request.POST.get('username', '').strip()
+        password = request.POST.get('password', '')
+        if not username or not password:
+            error = 'Please enter both username and password.'
+        else:
+            user = authenticate(request, username=username, password=password)
+            if user:
+                login(request, user)
+                return redirect(request.GET.get('next', 'home'))
+            else:
+                error = 'Invalid username or password.'
+    return render(request, 'registration/login.html', {'error': error})
+
+
+def logout_view(request):
+    logout(request)
+    return redirect('login')
+
+
+# ─────────────────────────────────────────
+#  HELPERS
+# ─────────────────────────────────────────
 
 def _compute_report(df):
     total_missing = int(df.isnull().sum().sum())
@@ -70,7 +93,10 @@ def _compute_report(df):
     uniqueness_score = max(0, round(100 - dup_pct, 2))
     validity_score = max(0, round(100 - email_pct, 2))
     consistency_score = 100.0
-    overall_score = round((completeness_score * 0.30) + (uniqueness_score * 0.25) + (validity_score * 0.25) + (consistency_score * 0.20), 2)
+    overall_score = round(
+        (completeness_score * 0.30) + (uniqueness_score * 0.25) +
+        (validity_score * 0.25) + (consistency_score * 0.20), 2
+    )
     issue_summary, recommendations = [], []
     if total_missing > 0:
         issue_summary.append(f"Dataset contains {total_missing} missing values.")
@@ -101,9 +127,8 @@ def _column_stats(df):
         col_data = df[col]
         missing = int(col_data.isnull().sum())
         unique = int(col_data.nunique())
-        dtype = str(col_data.dtype)
         stat = {
-            'name': col, 'dtype': dtype, 'missing': missing,
+            'name': col, 'dtype': str(col_data.dtype), 'missing': missing,
             'missing_pct': round(missing / len(df) * 100, 1) if len(df) > 0 else 0,
             'unique': unique, 'top_values': [], 'date_issues': 0, 'type_mismatch': False,
         }
@@ -134,8 +159,55 @@ def _column_stats(df):
     return stats
 
 
+# ─────────────────────────────────────────
+#  MAIN VIEWS
+# ─────────────────────────────────────────
+
+@login_required
+def home(request):
+    query = request.GET.get('q', '')
+    datasets = Dataset.objects.filter(user=request.user).order_by('-uploaded_at')
+    if query:
+        datasets = datasets.filter(name__icontains=query)
+    total_datasets = Dataset.objects.filter(user=request.user).count()
+    cleaned_count = Dataset.objects.filter(user=request.user, status='cleaned').count()
+    validated_count = Dataset.objects.filter(user=request.user, status='validated').count()
+    profiled_count = Dataset.objects.filter(user=request.user, status='profiled').count()
+    return render(request, 'datasets/home.html', {
+        'datasets': datasets, 'query': query,
+        'total_datasets': total_datasets, 'cleaned_count': cleaned_count,
+        'validated_count': validated_count, 'profiled_count': profiled_count,
+    })
+
+
+@login_required
+def upload_dataset(request):
+    if request.method == 'POST':
+        form = DatasetUploadForm(request.POST, request.FILES)
+        if form.is_valid():
+            dataset = form.save(commit=False)
+            dataset.user = request.user
+            dataset.file_size = request.FILES['file'].size
+            dataset.save()
+            try:
+                df = pd.read_csv(dataset.file.path)
+                dataset.num_rows = df.shape[0]
+                dataset.num_columns = df.shape[1]
+                dataset.status = 'profiled'
+                dataset.save()
+            except Exception:
+                dataset.delete()
+                form.add_error('file', 'Could not parse CSV file. Please upload a valid CSV.')
+                return render(request, 'datasets/upload.html', {'form': form})
+            return redirect('dataset_detail', dataset_id=dataset.id)
+    else:
+        form = DatasetUploadForm()
+    return render(request, 'datasets/upload.html', {'form': form})
+
+
+@login_required
 def dataset_detail(request, dataset_id):
-    dataset = get_object_or_404(Dataset, id=dataset_id)
+    dataset = get_object_or_404(Dataset, id=dataset_id, user=request.user)
     df = pd.read_csv(dataset.file.path)
     preview_data = df.head().fillna('').to_dict(orient='records')
     columns = df.columns.tolist()
@@ -171,8 +243,42 @@ def dataset_detail(request, dataset_id):
     return render(request, 'datasets/detail.html', context)
 
 
+@login_required
+def update_dataset_name(request, dataset_id):
+    """AJAX — update dataset name (UPDATE / PUT)."""
+    dataset = get_object_or_404(Dataset, id=dataset_id, user=request.user)
+    if request.method == 'POST':
+        body = json.loads(request.body)
+        new_name = body.get('name', '').strip()
+        if not new_name:
+            return JsonResponse({'error': 'Name cannot be empty.'}, status=400)
+        if len(new_name) > 255:
+            return JsonResponse({'error': 'Name too long.'}, status=400)
+        dataset.name = new_name
+        dataset.save()
+        return JsonResponse({'message': 'Dataset name updated.', 'name': dataset.name})
+    return JsonResponse({'error': 'POST required.'}, status=400)
+
+
+@login_required
+def delete_dataset(request, dataset_id):
+    """DELETE a dataset and its file."""
+    dataset = get_object_or_404(Dataset, id=dataset_id, user=request.user)
+    if request.method == 'POST':
+        # Remove the file from disk
+        if os.path.exists(dataset.file.path):
+            os.remove(dataset.file.path)
+        dataset.delete()
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            return JsonResponse({'message': 'Dataset deleted successfully.'})
+        messages.success(request, 'Dataset deleted.')
+        return redirect('home')
+    return JsonResponse({'error': 'POST required.'}, status=400)
+
+
+@login_required
 def remove_duplicates(request, dataset_id):
-    dataset = get_object_or_404(Dataset, id=dataset_id)
+    dataset = get_object_or_404(Dataset, id=dataset_id, user=request.user)
     df = pd.read_csv(dataset.file.path)
     before = df.shape[0]
     df = df.drop_duplicates()
@@ -187,16 +293,15 @@ def remove_duplicates(request, dataset_id):
     return redirect('dataset_detail', dataset_id=dataset.id)
 
 
+@login_required
 def fill_missing_values(request, dataset_id):
-    dataset = get_object_or_404(Dataset, id=dataset_id)
+    dataset = get_object_or_404(Dataset, id=dataset_id, user=request.user)
     df = pd.read_csv(dataset.file.path)
-
     if request.method == 'POST':
         body = json.loads(request.body)
         strategies = body.get('strategies', {})
         before_missing = int(df.isnull().sum().sum())
         rows_before = len(df)
-
         for col in df.columns:
             if df[col].isnull().sum() == 0:
                 continue
@@ -219,7 +324,6 @@ def fill_missing_values(request, dataset_id):
                     df[col] = df[col].fillna(df[col].mean())
                 else:
                     df[col] = df[col].fillna('Unknown')
-
         filled_count = before_missing - int(df.isnull().sum().sum())
         dropped_rows = rows_before - len(df)
         df.to_csv(dataset.file.path, index=False)
@@ -228,8 +332,6 @@ def fill_missing_values(request, dataset_id):
         dataset.file_size = os.path.getsize(dataset.file.path)
         dataset.save()
         return JsonResponse({'message': 'Missing values handled.', 'filled_count': filled_count, 'dropped_rows': dropped_rows})
-
-    # GET — return column info for modal
     col_info = []
     for col in df.columns:
         missing = int(df[col].isnull().sum())
@@ -243,8 +345,9 @@ def fill_missing_values(request, dataset_id):
     return JsonResponse({'columns': col_info})
 
 
+@login_required
 def remove_columns(request, dataset_id):
-    dataset = get_object_or_404(Dataset, id=dataset_id)
+    dataset = get_object_or_404(Dataset, id=dataset_id, user=request.user)
     if request.method == 'POST':
         body = json.loads(request.body)
         cols_to_remove = body.get('columns', [])
@@ -260,8 +363,9 @@ def remove_columns(request, dataset_id):
     return JsonResponse({'error': 'POST required'}, status=400)
 
 
+@login_required
 def detect_outliers(request, dataset_id):
-    dataset = get_object_or_404(Dataset, id=dataset_id)
+    dataset = get_object_or_404(Dataset, id=dataset_id, user=request.user)
     df = pd.read_csv(dataset.file.path)
     outlier_info = []
     for col in df.select_dtypes(include=[np.number]).columns:
@@ -279,8 +383,9 @@ def detect_outliers(request, dataset_id):
     return JsonResponse({'outliers': outlier_info})
 
 
+@login_required
 def remove_outliers(request, dataset_id):
-    dataset = get_object_or_404(Dataset, id=dataset_id)
+    dataset = get_object_or_404(Dataset, id=dataset_id, user=request.user)
     if request.method == 'POST':
         body = json.loads(request.body)
         cols = body.get('columns', [])
@@ -302,8 +407,9 @@ def remove_outliers(request, dataset_id):
     return JsonResponse({'error': 'POST required'}, status=400)
 
 
+@login_required
 def fix_text(request, dataset_id):
-    dataset = get_object_or_404(Dataset, id=dataset_id)
+    dataset = get_object_or_404(Dataset, id=dataset_id, user=request.user)
     if request.method == 'POST':
         body = json.loads(request.body)
         operations = body.get('operations', {})
@@ -332,47 +438,40 @@ def fix_text(request, dataset_id):
     return JsonResponse({'text_columns': text_cols})
 
 
+@login_required
 def quality_report_html(request, dataset_id):
-    dataset = get_object_or_404(Dataset, id=dataset_id)
+    dataset = get_object_or_404(Dataset, id=dataset_id, user=request.user)
     df = pd.read_csv(dataset.file.path)
     metrics = _compute_report(df)
     col_stats = _column_stats(df)
-
     rows_html = ''
     for s in col_stats:
         rows_html += f"""<tr>
-          <td>{s['name']}</td>
-          <td>{'Numeric' if s['is_numeric'] else 'Text'}</td>
-          <td>{s['missing']} ({s['missing_pct']}%)</td>
-          <td>{s['unique']}</td>
+          <td>{s['name']}</td><td>{'Numeric' if s['is_numeric'] else 'Text'}</td>
+          <td>{s['missing']} ({s['missing_pct']}%)</td><td>{s['unique']}</td>
           <td>{s['mean'] if s['mean'] is not None else '—'}</td>
           <td>{s['min'] if s['min'] is not None else '—'}</td>
           <td>{s['max'] if s['max'] is not None else '—'}</td>
           <td>{'⚠ ' + str(s['date_issues']) if s['date_issues'] > 0 else '—'}</td>
         </tr>"""
-
     html = f"""<!DOCTYPE html>
 <html><head><meta charset="utf-8"><title>Quality Report — {dataset.name}</title>
 <style>
   body{{font-family:'Segoe UI',sans-serif;max-width:960px;margin:40px auto;padding:0 24px;color:#1a1d23}}
-  h1{{font-size:1.5rem;margin-bottom:2px}}
-  .meta{{color:#6b7280;font-size:0.85rem;margin-bottom:28px}}
+  h1{{font-size:1.5rem;margin-bottom:2px}} .meta{{color:#6b7280;font-size:0.85rem;margin-bottom:28px}}
   .scores{{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:28px}}
-  .sb{{background:#f0f2f5;border-radius:10px;padding:14px;text-align:center}}
-  .sb.ov{{background:#e8f0fd}}
+  .sb{{background:#f0f2f5;border-radius:10px;padding:14px;text-align:center}} .sb.ov{{background:#e8f0fd}}
   .sl{{font-size:0.7rem;text-transform:uppercase;letter-spacing:.05em;color:#6b7280;margin-bottom:4px}}
-  .sv{{font-size:1.7rem;font-weight:700}}
-  .sb.ov .sv{{color:#2f6de1}}
+  .sv{{font-size:1.7rem;font-weight:700}} .sb.ov .sv{{color:#2f6de1}}
   h2{{font-size:1rem;margin:24px 0 10px;border-bottom:1px solid #e2e6ea;padding-bottom:5px}}
   table{{width:100%;border-collapse:collapse;font-size:0.83rem}}
   th{{background:#f0f2f5;padding:7px 10px;text-align:left;font-size:0.72rem;text-transform:uppercase;letter-spacing:.04em;color:#6b7280}}
   td{{padding:8px 10px;border-bottom:1px solid #f1f3f5}}
   ul{{padding-left:16px}} li{{margin-bottom:5px;font-size:0.86rem}}
   .footer{{margin-top:36px;font-size:0.75rem;color:#9ca3af;text-align:center}}
-</style>
-</head><body>
+</style></head><body>
 <h1>Data Quality Report</h1>
-<div class="meta">Dataset: <strong>{dataset.name}</strong> &nbsp;·&nbsp; {dataset.num_rows} rows &nbsp;·&nbsp; {dataset.num_columns} columns &nbsp;·&nbsp; Status: {dataset.status}</div>
+<div class="meta">Dataset: <strong>{dataset.name}</strong> &nbsp;·&nbsp; {dataset.num_rows} rows &nbsp;·&nbsp; {dataset.num_columns} columns &nbsp;·&nbsp; Generated by: {dataset.user.username}</div>
 <div class="scores">
   <div class="sb"><div class="sl">Completeness</div><div class="sv">{metrics['completeness_score']}</div></div>
   <div class="sb"><div class="sl">Uniqueness</div><div class="sv">{metrics['uniqueness_score']}</div></div>
@@ -384,14 +483,14 @@ def quality_report_html(request, dataset_id):
 <h2>Column Profiling</h2>
 <table><thead><tr><th>Column</th><th>Type</th><th>Missing</th><th>Unique</th><th>Mean</th><th>Min</th><th>Max</th><th>Date Issues</th></tr></thead>
 <tbody>{rows_html}</tbody></table>
-<div class="footer">Generated by Data Quality Platform</div>
+<div class="footer">Data Quality Platform &nbsp;·&nbsp; {dataset.uploaded_at.strftime('%Y-%m-%d')}</div>
 </body></html>"""
-
     response = HttpResponse(html, content_type='text/html')
     response['Content-Disposition'] = f'attachment; filename="report_{dataset.name}.html"'
     return response
 
 
+@login_required
 def export_dataset(request, dataset_id):
-    dataset = get_object_or_404(Dataset, id=dataset_id)
+    dataset = get_object_or_404(Dataset, id=dataset_id, user=request.user)
     return FileResponse(open(dataset.file.path, 'rb'), as_attachment=True, filename=os.path.basename(dataset.file.path))

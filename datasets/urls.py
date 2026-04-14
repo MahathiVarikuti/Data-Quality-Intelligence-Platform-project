@@ -4,6 +4,7 @@ from .views import (
     fill_missing_values, export_dataset,
     remove_columns, detect_outliers, remove_outliers,
     fix_text, quality_report_html,
+    update_dataset_name, delete_dataset,
 )
 
 urlpatterns = [
@@ -17,4 +18,6 @@ urlpatterns = [
     path('<int:dataset_id>/remove-outliers/', remove_outliers, name='remove_outliers'),
     path('<int:dataset_id>/fix-text/', fix_text, name='fix_text'),
     path('<int:dataset_id>/quality-report/', quality_report_html, name='quality_report_html'),
+    path('<int:dataset_id>/update-name/', update_dataset_name, name='update_dataset_name'),
+    path('<int:dataset_id>/delete/', delete_dataset, name='delete_dataset'),
 ]
