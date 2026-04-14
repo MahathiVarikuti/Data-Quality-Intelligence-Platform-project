@@ -2,7 +2,7 @@
 
 A full-stack Django web application that automates dataset quality analysis, issue detection, quality scoring, and assisted cleaning. Users upload CSV files and instantly receive structured insights with actionable recommendations for data improvement.
 
-Instead of manually inspecting messy datasets, users can upload a CSV and get instant quality scores, issue summaries, and step-by-step cleaning guidance—all in one integrated platform.
+Instead of manually inspecting messy datasets, users can upload a CSV and get instant quality scores, issue summaries, and step-by-step cleaning guidance - all in one integrated platform.
 
 ---
 
@@ -16,7 +16,7 @@ Real-world datasets are notoriously messy:
 - **Inconsistent values** (mixed case, extra whitespace) prevent joins
 - **Outliers** can distort trends and predictions
 
-Manual data cleaning is tedious, error-prone, and scales poorly—teams spend 60-80% of project time preparing data instead of deriving insights.
+Manual data cleaning is tedious, error-prone, and scales poorly - teams spend 60-80% of project time preparing data instead of deriving insights.
 
 This platform automates **data quality assessment and assisted cleaning**, turning hours of manual work into seconds of automated analysis.
 
@@ -24,32 +24,32 @@ This platform automates **data quality assessment and assisted cleaning**, turni
 
 ## Features
 
-- **CSV Dataset Management** — Upload, store, and organize multiple datasets with automatic profiling
-- **Dataset Profiling** — Extract rows, columns, data types, and memory footprint on upload
-- **Missing Value Detection** — Column-wise null analysis with visualization
-- **Duplicate Row Detection** — Identify and count duplicate records
-- **Invalid Email Validation** — Regex-based email format checking with sample display
-- **Data Type Analysis** — Detect type mismatches, numeric anomalies, and date parsing issues
+- **CSV Dataset Management** - Upload, store, and organize multiple datasets with automatic profiling
+- **Dataset Profiling** - Extract rows, columns, data types, and memory footprint on upload
+- **Missing Value Detection** - Column-wise null analysis with visualization
+- **Duplicate Row Detection** - Identify and count duplicate records
+- **Invalid Email Validation** - Regex-based email format checking with sample display
+- **Data Type Analysis** - Detect type mismatches, numeric anomalies, and date parsing issues
 - **Comprehensive Quality Scoring:**
-  - **Completeness** (30% weight) — % of non-null values
-  - **Uniqueness** (25% weight) — % of non-duplicate rows
-  - **Validity** (25% weight) — % of correctly formatted values (email validation)
-  - **Consistency** (20% weight) — Baseline metric for data uniformity
-  - **Overall Score** — Weighted aggregate of all dimensions
-- **Issue Summary & Recommendations** — AI-generated actionable next steps
+  - **Completeness** (30% weight) - % of non-null values
+  - **Uniqueness** (25% weight) - % of non-duplicate rows
+  - **Validity** (25% weight) - % of correctly formatted values (email validation)
+  - **Consistency** (20% weight) - Baseline metric for data uniformity
+  - **Overall Score** - Weighted aggregate of all dimensions
+- **Issue Summary & Recommendations** - AI-generated actionable next steps
 - **Assisted Data Cleaning:**
   - Remove duplicate rows with one click
   - Fill missing values (mean, median, mode, or custom values per column)
   - Remove problematic columns
   - Detect and remove statistical outliers (IQR method)
   - Normalize text (trim, case conversion)
-- **Export Cleaned Dataset** — Download improved CSV immediately
-- **User Dashboard** — Search, filter, and manage datasets with status tracking
-- **REST API** — Programmatic access to validation reports
-- **AJAX-Based UI** — Dynamic updates without page reloads
-- **Role-Based Access** — Users only see their own datasets
-- **Django Admin Panel** — Monitor all reports and datasets
-- **HTML Quality Report Export** — Styled standalone HTML report generation
+- **Export Cleaned Dataset** - Download improved CSV immediately
+- **User Dashboard** - Search, filter, and manage datasets with status tracking
+- **REST API** - Programmatic access to validation reports
+- **AJAX-Based UI** - Dynamic updates without page reloads
+- **Role-Based Access** - Users only see their own datasets
+- **Django Admin Panel** - Monitor all reports and datasets
+- **HTML Quality Report Export** - Styled standalone HTML report generation
 
 ---
 
@@ -105,6 +105,10 @@ User → Django Web App (MVT) → Pandas Processing → MySQL Database → REST 
 
 ## Screenshots
 
+### User Authentication
+![Login Screen](screenshots/login_screen.png)
+> Simple login form with username/password. Registration link for new users. Session-based authentication with redirect to dashboard on success.
+
 ### Dashboard - Dataset Overview
 ![Dashboard Home](screenshots/home_dashboard.png)
 > The main dashboard shows all uploaded datasets with quick stats: total datasets (3), cleaned (1), validated (1), profiled (1). Users can search by name or click to view details.
@@ -137,9 +141,6 @@ User → Django Web App (MVT) → Pandas Processing → MySQL Database → REST 
 ![HTML Report](screenshots/html_report.png)
 > Professional HTML report with quality scorecard, issue summary, recommendations, and detailed column profiling table. Downloadable as standalone file.
 
-### User Authentication
-![Login Screen](screenshots/login_screen.png)
-> Simple login form with username/password. Registration link for new users. Session-based authentication with redirect to dashboard on success.
 
 ---
 
@@ -365,7 +366,7 @@ Data-Quality-Intelligence-Platform-project/
 **Authentication:** Not required (AllowAny)
 
 **Parameters:**
-- `dataset_id` (int, required) — ID of the dataset
+- `dataset_id` (int, required) - ID of the dataset
 
 **Response (200 OK):**
 ```json
@@ -395,7 +396,7 @@ Data-Quality-Intelligence-Platform-project/
 ```
 
 **Error Responses:**
-- `404 Not Found` — Dataset or report does not exist
+- `404 Not Found` - Dataset or report does not exist
 
 **Example cURL:**
 ```bash
@@ -477,33 +478,33 @@ class ValidationReport(models.Model):
 
 ## Limitations
 
-- **No background task processing** — Large datasets (>100MB) will block the request. Consider Celery + Redis for async processing.
-- **Local file storage** — Not suitable for multi-server deployment. Use S3/GCS for cloud scaling.
-- **Single-user per dataset** — No collaboration/sharing features yet.
-- **Limited data type detection** — Relies on Pandas inference; complex types (JSON, nested) not supported.
-- **Email validation only** — No other regex patterns for phone, URL, date validation by default.
-- **Consistency metric is static** — Future: add pattern matching, referential integrity checks.
-- **No data versioning** — Cleaning operations overwrite the file; no rollback capability.
-- **Session-based auth only** — No API tokens or OAuth for programmatic access (yet).
+- **No background task processing** - Large datasets (>100MB) will block the request. Consider Celery + Redis for async processing.
+- **Local file storage** - Not suitable for multi-server deployment. Use S3/GCS for cloud scaling.
+- **Single-user per dataset** - No collaboration/sharing features yet.
+- **Limited data type detection** - Relies on Pandas inference; complex types (JSON, nested) not supported.
+- **Email validation only** - No other regex patterns for phone, URL, date validation by default.
+- **Consistency metric is static** - Future: add pattern matching, referential integrity checks.
+- **No data versioning** - Cleaning operations overwrite the file; no rollback capability.
+- **Session-based auth only** - No API tokens or OAuth for programmatic access (yet).
 
 ---
 
 ## Future Work
 
-- **Async Processing** — Celery + Redis for background dataset processing
-- **Cloud Storage** — AWS S3, Google Cloud Storage, Azure Blob integration
-- **Advanced Pattern Detection** — Phone numbers, URLs, postal codes, custom regex
-- **Data Lineage Tracking** — Track cleaning operations and revert to previous versions
-- **Collaboration Features** — Share datasets, invite team members with roles
-- **Data Profiling Reports** — Visual charts, histograms, correlation matrices
-- **Machine Learning Insights** — Anomaly detection, predictive quality scoring
-- **Schema Validation** — Upload data dictionaries, validate against schema
-- **Real-time Previews** — Live preview of cleaning operations before applying
-- **Bulk Operations** — Process multiple datasets in parallel
-- **Data Masking** — PII redaction for sensitive datasets
-- **API Tokens** — Token-based authentication for programmatic access
-- **Audit Logs** — Track all user actions and data modifications
-- **Custom Metrics** — Allow users to define domain-specific quality rules
+- **Async Processing** - Celery + Redis for background dataset processing
+- **Cloud Storage** - AWS S3, Google Cloud Storage, Azure Blob integration
+- **Advanced Pattern Detection** - Phone numbers, URLs, postal codes, custom regex
+- **Data Lineage Tracking** - Track cleaning operations and revert to previous versions
+- **Collaboration Features** - Share datasets, invite team members with roles
+- **Data Profiling Reports** - Visual charts, histograms, correlation matrices
+- **Machine Learning Insights** - Anomaly detection, predictive quality scoring
+- **Schema Validation** - Upload data dictionaries, validate against schema
+- **Real-time Previews** - Live preview of cleaning operations before applying
+- **Bulk Operations** - Process multiple datasets in parallel
+- **Data Masking** - PII redaction for sensitive datasets
+- **API Tokens** - Token-based authentication for programmatic access
+- **Audit Logs** - Track all user actions and data modifications
+- **Custom Metrics** - Allow users to define domain-specific quality rules
 
 ---
 
